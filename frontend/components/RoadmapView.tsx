@@ -7,10 +7,11 @@ import {
   AlertTriangle,
   ArrowRight,
   Sparkles,
-  HelpCircle,
-  Clock,
+  Award,
   BookOpen,
-  Award
+  Layers,
+  ChevronRight,
+  Clock
 } from 'lucide-react';
 
 interface RoadmapViewProps {
@@ -36,80 +37,83 @@ export const RoadmapView: React.FC<RoadmapViewProps> = ({
     switch (status) {
       case 'completed':
         return (
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-            <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Completed (Proficient)
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+            <CheckCircle2 className="w-3 h-3 mr-1" /> Completed
           </span>
         );
       case 'in_progress':
         return (
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
-            <PlayCircle className="w-3.5 h-3.5 mr-1" /> Active Topic
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/15 text-indigo-400 border border-indigo-500/30">
+            <PlayCircle className="w-3 h-3 mr-1" /> In Progress
           </span>
         );
       case 'needs_revision':
         return (
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-rose-500/20 text-rose-400 border border-rose-500/30">
-            <AlertTriangle className="w-3.5 h-3.5 mr-1" /> Revision Needed (&lt;70%)
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/15 text-rose-400 border border-rose-500/30">
+            <AlertTriangle className="w-3 h-3 mr-1" /> Revision Needed
           </span>
         );
       case 'available':
         return (
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
-            <PlayCircle className="w-3.5 h-3.5 mr-1" /> Ready to Start
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/15 text-cyan-400 border border-cyan-500/30">
+            <PlayCircle className="w-3 h-3 mr-1" /> Ready
           </span>
         );
       case 'locked':
       default:
         return (
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-700/60 text-slate-400 border border-slate-700">
-            <Lock className="w-3.5 h-3.5 mr-1" /> Prerequisites Locked
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-800 text-slate-400 border border-slate-700">
+            <Lock className="w-3 h-3 mr-1" /> Locked
           </span>
         );
     }
   };
 
+  const completedCount = roadmap.filter((n) => n.status === 'completed').length;
+  const progressPct = roadmap.length > 0 ? Math.round((completedCount / roadmap.length) * 100) : 0;
+
   return (
     <div className="space-y-6">
-      {/* Roadmap Header & Explanation */}
-      <div className="bg-slate-800/80 border border-slate-700/70 rounded-2xl p-6 relative overflow-hidden">
-        <div className="absolute -top-12 -right-12 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center space-x-2 mb-1">
-              <span className="text-xs uppercase tracking-wider text-indigo-400 font-bold">
-                Dependency-Engineered Roadmap
-              </span>
-              <span className="text-slate-500">•</span>
-              <span className="text-xs text-slate-400">Strict Prerequisite Ordering</span>
-            </div>
-            <h1 className="text-2xl font-bold text-white tracking-tight">
-              Production Backend Engineering Path
-            </h1>
-            <p className="text-sm text-slate-300 mt-1 max-w-2xl">
-              Constructed from syllabus topics mapped against curated runtime prerequisites. Unlocks systematically as you demonstrate mastery through evidence-based assessments.
-            </p>
+      {/* Header Overview (Clean, roadmap.sh style) */}
+      <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center space-x-2 text-[10px] font-bold uppercase tracking-wider text-indigo-400 mb-1">
+            <Layers className="w-3.5 h-3.5" />
+            <span>Structured Developer Path</span>
+          </div>
+          <h2 className="text-xl font-bold text-white tracking-tight">
+            Production Node.js Backend Path
+          </h2>
+          <p className="text-xs text-slate-400 mt-0.5 max-w-xl">
+            Prerequisite-ordered curriculum mapping syllabus concepts to official runtime standards. Pass diagnostic assessments to unlock subsequent modules.
+          </p>
+        </div>
+
+        <div className="flex items-center space-x-3 self-start md:self-auto">
+          <div className="text-right">
+            <span className="text-[10px] text-slate-400 block font-medium">Path Completion</span>
+            <span className="text-base font-bold text-indigo-400 font-mono">
+              {completedCount} / {roadmap.length} ({progressPct}%)
+            </span>
           </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={onOpenSyllabus}
-              className="text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium px-3.5 py-2 rounded-xl border border-slate-600 transition flex items-center space-x-1.5"
-            >
-              <BookOpen className="w-3.5 h-3.5 text-cyan-400" />
-              <span>Ingest / Edit Syllabus</span>
-            </button>
-          </div>
+          <button
+            onClick={onOpenSyllabus}
+            className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition"
+          >
+            <BookOpen className="w-3.5 h-3.5 text-cyan-400" />
+            <span>Edit Syllabus</span>
+          </button>
         </div>
       </div>
 
-      {/* Sequential Graph Display */}
-      <div className="relative pl-6 sm:pl-8 space-y-6 before:absolute before:left-3 sm:before:left-4 before:top-4 before:bottom-4 before:w-0.5 before:bg-gradient-to-b before:from-indigo-500 before:via-cyan-500 before:to-slate-700">
+      {/* Structured Roadmap Lineage */}
+      <div className="relative pl-6 sm:pl-8 space-y-4 before:absolute before:left-3 sm:before:left-4 before:top-4 before:bottom-4 before:w-0.5 before:bg-slate-800">
         {roadmap.map((node, index) => {
           const catalogItem = catalog.find((c) => c.id === node.topicId);
           const isSelected = node.topicId === activeTopicId;
           const isLocked = node.status === 'locked';
 
-          // find prerequisite titles
           const prereqTitles = catalogItem
             ? catalogItem.prerequisiteIds.map((pid) => {
                 const found = catalog.find((c) => c.id === pid);
@@ -119,87 +123,78 @@ export const RoadmapView: React.FC<RoadmapViewProps> = ({
 
           return (
             <div key={node.topicId} className="relative group">
-              {/* Timeline marker icon */}
+              {/* Milestone Indicator Icon */}
               <div
-                className={`absolute -left-6 sm:-left-8 top-5 w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 flex items-center justify-center transition-all ${
+                className={`absolute -left-6 sm:-left-8 top-4 w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 flex items-center justify-center transition-all ${
                   node.status === 'completed'
-                    ? 'bg-emerald-950 border-emerald-500 text-emerald-400'
+                    ? 'bg-slate-900 border-emerald-500 text-emerald-400'
                     : node.status === 'in_progress'
-                    ? 'bg-indigo-950 border-indigo-500 text-indigo-400 ring-4 ring-indigo-500/20'
+                    ? 'bg-slate-900 border-indigo-500 text-indigo-400 ring-4 ring-indigo-500/20'
                     : node.status === 'needs_revision'
-                    ? 'bg-rose-950 border-rose-500 text-rose-400'
+                    ? 'bg-slate-900 border-rose-500 text-rose-400'
                     : node.status === 'available'
-                    ? 'bg-cyan-950 border-cyan-500 text-cyan-400'
-                    : 'bg-slate-900 border-slate-700 text-slate-500'
+                    ? 'bg-slate-900 border-cyan-500 text-cyan-400'
+                    : 'bg-slate-900 border-slate-800 text-slate-600'
                 }`}
               >
                 {node.status === 'completed' ? (
-                  <CheckCircle2 className="w-4 h-4" />
+                  <CheckCircle2 className="w-3.5 h-3.5" />
                 ) : node.status === 'locked' ? (
-                  <Lock className="w-3.5 h-3.5" />
+                  <Lock className="w-3 h-3" />
                 ) : (
-                  <span className="text-xs font-bold">{index + 1}</span>
+                  <span className="text-[10px] font-bold font-mono">{index + 1}</span>
                 )}
               </div>
 
-              {/* Node Card */}
+              {/* Topic Node Card */}
               <div
                 onClick={() => !isLocked && onSelectTopic(node.topicId)}
-                className={`rounded-2xl p-5 border transition-all ${
+                className={`rounded-xl p-4 border transition-all ${
                   isLocked
-                    ? 'bg-slate-900/60 border-slate-800/80 opacity-70 cursor-not-allowed'
+                    ? 'bg-slate-900/40 border-slate-800/60 opacity-60 cursor-not-allowed'
                     : isSelected
-                    ? 'bg-slate-800 border-indigo-500 shadow-xl shadow-indigo-950/40 ring-1 ring-indigo-500/50 cursor-pointer'
-                    : 'bg-slate-800/90 border-slate-700 hover:border-slate-600 hover:bg-slate-800 cursor-pointer'
+                    ? 'bg-slate-900 border-indigo-500 ring-1 ring-indigo-500/40 cursor-pointer shadow-md'
+                    : 'bg-slate-900 border-slate-800 hover:border-slate-700 cursor-pointer'
                 }`}
               >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div>
-                    <div className="flex items-center space-x-2 text-xs text-slate-400 mb-1">
-                      <span className="font-semibold text-slate-300">{node.unit}</span>
-                      <span>•</span>
-                      <span>Topic #{index + 1}</span>
-                      {catalogItem && (
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                  <div className="space-y-1">
+                    <div className="flex items-center space-x-2 text-[11px] text-slate-400">
+                      <span className="text-slate-300 font-medium">{node.unit}</span>
+                      <span>·</span>
+                      <span className="capitalize">{catalogItem?.difficulty || 'Intermediate'}</span>
+                      {typeof node.score === 'number' && (
                         <>
-                          <span>•</span>
-                          <span className="capitalize text-indigo-400">{catalogItem.difficulty}</span>
+                          <span>·</span>
+                          <span className="text-cyan-400 font-mono">Score: {node.score}%</span>
                         </>
                       )}
                     </div>
 
-                    <h3 className="text-lg font-bold text-white group-hover:text-indigo-300 transition-colors">
+                    <h3 className="text-sm sm:text-base font-bold text-white group-hover:text-indigo-300 transition-colors">
                       {node.title}
                     </h3>
 
                     {catalogItem && (
-                      <p className="text-xs text-slate-400 mt-1 line-clamp-2 max-w-2xl">
+                      <p className="text-xs text-slate-400 line-clamp-1 max-w-2xl">
                         {catalogItem.summary}
                       </p>
                     )}
                   </div>
 
-                  <div className="flex flex-wrap sm:flex-col items-start sm:items-end gap-2">
+                  <div className="self-start sm:self-auto flex items-center space-x-2">
                     {getStatusBadge(node.status)}
-                    {typeof node.score === 'number' && (
-                      <span className="text-xs font-mono font-medium text-slate-300 bg-slate-900/80 px-2 py-0.5 rounded border border-slate-700">
-                        Diagnostics: {node.score}%
-                      </span>
-                    )}
                   </div>
                 </div>
 
-                {/* Prerequisites requirements pill */}
+                {/* Prerequisites list */}
                 {prereqTitles.length > 0 && (
-                  <div className="mt-4 pt-3 border-t border-slate-700/60 flex flex-wrap items-center gap-2 text-xs">
-                    <span className="text-slate-400 font-medium">Prerequisites:</span>
-                    {prereqTitles.map((p, idx) => (
+                  <div className="mt-3 pt-2.5 border-t border-slate-800/80 flex flex-wrap items-center gap-1.5 text-[11px] text-slate-400">
+                    <span className="font-medium text-slate-500">Requires:</span>
+                    {prereqTitles.map((p, pIdx) => (
                       <span
-                        key={idx}
-                        className={`px-2 py-0.5 rounded text-xs border ${
-                          node.prerequisitesMet
-                            ? 'bg-emerald-950/40 border-emerald-800 text-emerald-300'
-                            : 'bg-slate-900 border-slate-700 text-slate-400'
-                        }`}
+                        key={pIdx}
+                        className="bg-slate-800 px-2 py-0.5 rounded text-[10px] text-slate-300 border border-slate-700/80"
                       >
                         {p}
                       </span>
@@ -207,19 +202,19 @@ export const RoadmapView: React.FC<RoadmapViewProps> = ({
                   </div>
                 )}
 
-                {/* Action buttons inside card */}
+                {/* Actions */}
                 {!isLocked && (
-                  <div className="mt-4 pt-3 border-t border-slate-700/60 flex flex-wrap items-center justify-between gap-2">
+                  <div className="mt-3 pt-2.5 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2">
                     <div className="flex items-center space-x-2">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           onOpenAssistant(node.topicId);
                         }}
-                        className="text-xs bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 font-medium px-3 py-1.5 rounded-lg border border-indigo-500/30 transition flex items-center space-x-1"
+                        className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold flex items-center space-x-1 transition border border-slate-700"
                       >
-                        <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
-                        <span>Ask AI Tutor</span>
+                        <Sparkles className="w-3 h-3 text-indigo-400" />
+                        <span>Ask AI</span>
                       </button>
 
                       <button
@@ -227,19 +222,19 @@ export const RoadmapView: React.FC<RoadmapViewProps> = ({
                           e.stopPropagation();
                           onOpenAssessment(node.topicId);
                         }}
-                        className="text-xs bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-300 font-medium px-3 py-1.5 rounded-lg border border-cyan-500/30 transition flex items-center space-x-1"
+                        className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold flex items-center space-x-1 transition border border-slate-700"
                       >
-                        <Award className="w-3.5 h-3.5 text-cyan-400" />
-                        <span>Practice & Diagnostic Quiz</span>
+                        <Award className="w-3 h-3 text-cyan-400" />
+                        <span>Diagnostic Quiz</span>
                       </button>
                     </div>
 
                     <button
                       onClick={() => onSelectTopic(node.topicId)}
-                      className="text-xs font-semibold text-slate-300 hover:text-white flex items-center space-x-1 group/btn"
+                      className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 flex items-center space-x-1"
                     >
-                      <span>Explore Verified Resources</span>
-                      <ArrowRight className="w-3.5 h-3.5 text-indigo-400 group-hover/btn:translate-x-0.5 transition-transform" />
+                      <span>Explore Resources</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 )}
