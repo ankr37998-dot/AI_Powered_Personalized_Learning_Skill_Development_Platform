@@ -7,7 +7,8 @@ import {
   AssessmentAttempt,
   VerificationReport,
   ReportedResourceIssue,
-  PlatformConfig
+  PlatformConfig,
+  SavedRoadmap
 } from '../types';
 import {
   CURATED_CATALOG,
@@ -20,7 +21,8 @@ import {
 const STORAGE_KEYS = {
   USER_PROFILE: 'cognipath_user_profile',
   ALL_USERS: 'cognipath_all_users_list',
-  ROADMAP: 'cognipath_roadmap_nodes',
+  SAVED_ROADMAPS: 'cognipath_saved_roadmaps',
+  ACTIVE_ROADMAP_ID: 'cognipath_active_roadmap_id',
   CATALOG: 'cognipath_catalog_topics',
   RESOURCES: 'cognipath_resources',
   QUESTIONS: 'cognipath_questions',
@@ -42,114 +44,237 @@ const DEFAULT_PROFILE: UserProfile = {
   status: 'active'
 };
 
-const SEED_USERS: UserProfile[] = [
-  DEFAULT_PROFILE,
-  {
-    id: 'usr_student_02',
-    name: 'Samantha Chen',
-    email: 'samantha.chen@techacademy.io',
-    role: 'student',
-    targetGoal: 'Distributed Systems & Stream Concurrency',
-    currentSkillLevel: 'advanced',
-    preferredLanguage: 'TypeScript',
-    registeredDate: '2025-01-15',
-    status: 'active'
-  },
-  {
-    id: 'usr_admin_01',
-    name: 'Admin Governance',
-    email: 'curriculum.lead@cognipath.ai',
-    role: 'admin',
-    targetGoal: 'Maintain Catalog Standards & Doc Citations',
-    currentSkillLevel: 'advanced',
-    preferredLanguage: 'All',
-    registeredDate: '2024-12-01',
-    status: 'active'
-  }
-];
-
-const DEFAULT_ROADMAP_NODES: RoadmapNode[] = [
-  {
-    topicId: 'topic_event_loop',
-    title: 'Node.js Event Loop & Libuv Architecture',
-    unit: 'Module 1: Architecture & Asynchronous Runtimes',
-    status: 'completed',
-    order: 1,
-    prerequisitesMet: true,
-    score: 85,
-    lastStudiedAt: '2025-02-23'
-  },
-  {
-    topicId: 'topic_microtasks',
-    title: 'Microtasks: process.nextTick & Promises',
-    unit: 'Module 1: Architecture & Asynchronous Runtimes',
-    status: 'in_progress',
-    order: 2,
-    prerequisitesMet: true,
-    score: 60,
-    lastStudiedAt: '2025-02-24'
-  },
-  {
-    topicId: 'topic_buffers_streams',
-    title: 'Buffers, Binary Data & Backpressure',
-    unit: 'Module 2: Memory & High-Throughput Streams',
-    status: 'needs_revision',
-    order: 3,
-    prerequisitesMet: true,
-    score: 40,
-    lastStudiedAt: '2025-02-25'
-  },
-  {
-    topicId: 'topic_cluster_scaling',
-    title: 'Process Management, Clustering & IPC',
-    unit: 'Module 3: Scalability & Process Management',
-    status: 'locked',
-    order: 4,
-    prerequisitesMet: false
-  }
-];
+const DEFAULT_NODEJS_ROADMAP: SavedRoadmap = {
+  id: 'roadmap_default_nodejs',
+  studentId: 'usr_student_01',
+  title: 'Production Node.js Architecture & Internals',
+  category: 'career',
+  description: 'Structured backend engineering path covering event loop phases, microtasks, binary streams, and cluster scaling.',
+  targetFocus: 'comprehensive',
+  skillLevel: 'intermediate',
+  weeklyHours: 10,
+  totalEstimatedHours: 48,
+  createdAt: '2025-02-01T00:00:00Z',
+  updatedAt: '2025-02-23T00:00:00Z',
+  phases: [
+    {
+      id: 'phase_runtimes',
+      title: 'Phase 1: Architecture & Asynchronous Runtimes',
+      description: 'Single-threaded event loop, 6 distinct phases, and libuv thread pool offloading.',
+      order: 1,
+      estimatedWeeks: 2,
+      milestoneProject: 'Build a low-overhead HTTP performance profiler measuring event-loop lag',
+      topicIds: ['topic_event_loop', 'topic_microtasks']
+    },
+    {
+      id: 'phase_memory_streams',
+      title: 'Phase 2: Memory & High-Throughput Streams',
+      description: 'Buffer allocations outside V8 heap, zero-fill guarantees, and stream backpressure.',
+      order: 2,
+      estimatedWeeks: 2,
+      milestoneProject: 'Implement a zero-copy streaming file transformer with drain event backpressure handling',
+      topicIds: ['topic_buffers_streams']
+    },
+    {
+      id: 'phase_scaling_ipc',
+      title: 'Phase 3: Scalability & Process Management',
+      description: 'Multi-core clustering, round-robin socket delegation, and graceful shutdown.',
+      order: 3,
+      estimatedWeeks: 2,
+      milestoneProject: 'Deploy a zero-downtime rolling restart cluster server with health checks',
+      topicIds: ['topic_cluster_scaling']
+    }
+  ],
+  nodes: [
+    {
+      topicId: 'topic_event_loop',
+      title: 'Node.js Event Loop & Libuv Architecture',
+      unit: 'Phase 1: Architecture & Asynchronous Runtimes',
+      phaseId: 'phase_runtimes',
+      status: 'completed',
+      order: 1,
+      prerequisitesMet: true,
+      score: 85,
+      lastStudiedAt: '2025-02-23',
+      estimatedHours: 8,
+      learningObjective: 'Master the 6 event loop phases, libuv OS abstraction, and call stack timing.',
+      keyCompetencies: ['Identify phase execution order', 'Diagnose event loop latency with perf_hooks']
+    },
+    {
+      topicId: 'topic_microtasks',
+      title: 'Microtasks: process.nextTick & Promises',
+      unit: 'Phase 1: Architecture & Asynchronous Runtimes',
+      phaseId: 'phase_runtimes',
+      status: 'in_progress',
+      order: 2,
+      prerequisitesMet: true,
+      score: 60,
+      lastStudiedAt: '2025-02-24',
+      estimatedHours: 6,
+      learningObjective: 'Understand nextTickQueue execution priority over standard ECMAScript microtasks.',
+      keyCompetencies: ['Predict microtask checkpoint timing', 'Prevent recursive nextTick starvation']
+    },
+    {
+      topicId: 'topic_buffers_streams',
+      title: 'Buffers, Binary Data & Backpressure',
+      unit: 'Phase 2: Memory & High-Throughput Streams',
+      phaseId: 'phase_memory_streams',
+      status: 'needs_revision',
+      order: 3,
+      prerequisitesMet: true,
+      score: 40,
+      lastStudiedAt: '2025-02-25',
+      estimatedHours: 12,
+      learningObjective: 'Allocate safe zero-filled buffers and handle backpressure using stream.pipeline and drain.',
+      keyCompetencies: ['Audit insecure new Buffer() usage', 'Implement highWaterMark backpressure throttling']
+    },
+    {
+      topicId: 'topic_cluster_scaling',
+      title: 'Process Management, Clustering & IPC',
+      unit: 'Phase 3: Scalability & Process Management',
+      phaseId: 'phase_scaling_ipc',
+      status: 'locked',
+      order: 4,
+      prerequisitesMet: false,
+      estimatedHours: 14,
+      learningObjective: 'Scale backend throughput across CPU cores using master-worker socket delegation and IPC.',
+      keyCompetencies: ['Design rolling restart zero-downtime architectures', 'Coordinate inter-process communication']
+    }
+  ]
+};
 
 export const storageService = {
   getUserProfile(): UserProfile {
     try {
       const stored = localStorage.getItem(STORAGE_KEYS.USER_PROFILE);
-      return stored ? JSON.parse(stored) : DEFAULT_PROFILE;
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        return { ...parsed, role: 'student' };
+      }
+      return DEFAULT_PROFILE;
     } catch {
       return DEFAULT_PROFILE;
     }
   },
 
   setUserProfile(profile: UserProfile): void {
-    localStorage.setItem(STORAGE_KEYS.USER_PROFILE, JSON.stringify(profile));
-    const all = this.getAllUsers();
-    const updated = all.map((u) => (u.id === profile.id ? profile : u));
-    this.setAllUsers(updated);
+    const studentOnlyProfile: UserProfile = { ...profile, role: 'student' };
+    localStorage.setItem(STORAGE_KEYS.USER_PROFILE, JSON.stringify(studentOnlyProfile));
   },
 
-  getAllUsers(): UserProfile[] {
+  // ----------------------------------------------------------------
+  // Multiple Roadmaps Management
+  // ----------------------------------------------------------------
+  getSavedRoadmaps(): SavedRoadmap[] {
     try {
-      const stored = localStorage.getItem(STORAGE_KEYS.ALL_USERS);
-      return stored ? JSON.parse(stored) : SEED_USERS;
+      const stored = localStorage.getItem(STORAGE_KEYS.SAVED_ROADMAPS);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+      // Seed initial default roadmap
+      this.setSavedRoadmaps([DEFAULT_NODEJS_ROADMAP]);
+      return [DEFAULT_NODEJS_ROADMAP];
     } catch {
-      return SEED_USERS;
+      return [DEFAULT_NODEJS_ROADMAP];
     }
   },
 
-  setAllUsers(users: UserProfile[]): void {
-    localStorage.setItem(STORAGE_KEYS.ALL_USERS, JSON.stringify(users));
+  setSavedRoadmaps(roadmaps: SavedRoadmap[]): void {
+    try {
+      localStorage.setItem(STORAGE_KEYS.SAVED_ROADMAPS, JSON.stringify(roadmaps));
+    } catch (e) {
+      console.warn('Failed to save roadmaps in localStorage:', e);
+    }
   },
 
+  getActiveRoadmapId(): string {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEYS.ACTIVE_ROADMAP_ID);
+      if (stored) return stored;
+      return DEFAULT_NODEJS_ROADMAP.id;
+    } catch {
+      return DEFAULT_NODEJS_ROADMAP.id;
+    }
+  },
+
+  setActiveRoadmapId(roadmapId: string): void {
+    localStorage.setItem(STORAGE_KEYS.ACTIVE_ROADMAP_ID, roadmapId);
+  },
+
+  getActiveRoadmap(): SavedRoadmap {
+    const roadmaps = this.getSavedRoadmaps();
+    const activeId = this.getActiveRoadmapId();
+    const found = roadmaps.find((r) => r.id === activeId);
+    return found || roadmaps[0] || DEFAULT_NODEJS_ROADMAP;
+  },
+
+  saveRoadmap(roadmap: SavedRoadmap): void {
+    const current = this.getSavedRoadmaps();
+    const existingIdx = current.findIndex((r) => r.id === roadmap.id);
+
+    // Auto-register topics from this roadmap into curated catalog so catalog inspector has full context
+    const catalog = this.getCatalog();
+    const updatedCatalog = [...catalog];
+
+    roadmap.nodes.forEach((node) => {
+      if (!updatedCatalog.some((c) => c.id === node.topicId)) {
+        updatedCatalog.push({
+          id: node.topicId,
+          title: node.title,
+          category: roadmap.title,
+          difficulty: roadmap.skillLevel,
+          summary: node.learningObjective || `${node.title} competency in ${roadmap.title}.`,
+          prerequisiteIds: roadmap.nodes
+            .filter((n) => n.order < node.order && n.topicId !== node.topicId)
+            .map((n) => n.topicId)
+            .slice(0, 1),
+          keyCompetencies: node.keyCompetencies || [node.title],
+          isActive: true,
+          officialDocSources: []
+        });
+      }
+    });
+    this.setCatalog(updatedCatalog);
+
+    let updatedList: SavedRoadmap[];
+    if (existingIdx >= 0) {
+      updatedList = [...current];
+      updatedList[existingIdx] = roadmap;
+    } else {
+      updatedList = [roadmap, ...current];
+    }
+
+    this.setSavedRoadmaps(updatedList);
+    this.setActiveRoadmapId(roadmap.id);
+  },
+
+  deleteRoadmap(roadmapId: string): void {
+    const current = this.getSavedRoadmaps();
+    if (current.length <= 1) return; // Keep at least one roadmap
+    const filtered = current.filter((r) => r.id !== roadmapId);
+    this.setSavedRoadmaps(filtered);
+    if (this.getActiveRoadmapId() === roadmapId) {
+      this.setActiveRoadmapId(filtered[0].id);
+    }
+  },
+
+  // Active Roadmap Nodes for compatibility with previous features
   getRoadmap(): RoadmapNode[] {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEYS.ROADMAP);
-      return stored ? JSON.parse(stored) : DEFAULT_ROADMAP_NODES;
-    } catch {
-      return DEFAULT_ROADMAP_NODES;
-    }
+    const active = this.getActiveRoadmap();
+    return active.nodes || [];
   },
 
   setRoadmap(nodes: RoadmapNode[]): void {
-    localStorage.setItem(STORAGE_KEYS.ROADMAP, JSON.stringify(nodes));
+    const active = this.getActiveRoadmap();
+    const updatedRoadmap: SavedRoadmap = {
+      ...active,
+      nodes,
+      updatedAt: new Date().toISOString()
+    };
+    this.saveRoadmap(updatedRoadmap);
   },
 
   getCatalog(): CatalogTopic[] {
@@ -179,7 +304,6 @@ export const storageService = {
   },
 
   saveVerificationReport(report: VerificationReport): void {
-    // 1. Update in resource list
     const resources = this.getResources();
     const updated = resources.map((r) => {
       if (r.id === report.resourceId) {
@@ -194,7 +318,6 @@ export const storageService = {
     });
     this.setResources(updated);
 
-    // 2. Append to verification history
     const history = this.getVerificationHistory();
     history.unshift(report);
     try {
