@@ -10,107 +10,85 @@ export const geminiService = {
   },
 
   /**
-   * Extracts syllabus subjects, topics, and prerequisites from raw syllabus text
+   * Extracts syllabus subjects, topics, and prerequisites from raw syllabus text using Vertex AI / Gemini 2.5 Flash
    */
   async extractTopicsFromSyllabus(rawText: string): Promise<ExtractedTopic[]> {
-    try {
-      const ai = this.getAiClient();
-      const prompt = `Analyze this college/technical syllabus and extract structured topics.
-Identify the unit/module, a clear technical topic title, brief description, and prerequisite relationship between topics.
-Assign confidence level: 'high' if clear, 'medium' if generalized, 'uncertain' if ambiguous.
+    if (!rawText || rawText.trim().length === 0) {
+      throw new Error('Syllabus input text is empty. Please enter or upload valid curriculum text.');
+    }
+
+    const ai = this.getAiClient();
+    const prompt = `Analyze this syllabus or curriculum document and extract structured subjects/units and discrete topics.
+Identify:
+1. "unitOrModule": The chapter, unit, or module name (e.g. "Module 1: Architecture").
+2. "title": A clear, concise technical topic title.
+3. "description": A 1-2 sentence description of competencies or runtime mechanics taught.
+4. "confidence": 'high' if the topic clearly maps to standard computer science/engineering subjects; 'medium' if generalized; 'uncertain' if ambiguous, poorly formatted, or unfamiliar.
+5. "prerequisites": List of preceding topic IDs that should strictly be studied before this topic.
 
 Syllabus Input:
 ${rawText}
 `;
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: prompt,
-        config: {
-          systemInstruction:
-            'You are an expert academic curriculum engineer. Return structured topic breakdowns suitable for a learning roadmap.',
-          responseMimeType: 'application/json',
-          responseSchema: {
-            type: Type.ARRAY,
-            description: 'List of extracted syllabus topics in order of dependencies',
-            items: {
-              type: Type.OBJECT,
-              properties: {
-                id: { type: Type.STRING },
-                title: { type: Type.STRING },
-                unitOrModule: { type: Type.STRING },
-                description: { type: Type.STRING },
-                confidence: {
-                  type: Type.STRING,
-                  description: 'Must be high, medium, or uncertain'
-                },
-                prerequisites: {
-                  type: Type.ARRAY,
-                  items: { type: Type.STRING },
-                  description: 'IDs of preceding topics that this topic depends on'
-                }
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+      config: {
+        systemInstruction:
+          'You are a senior academic curriculum architect and technical syllabus parsing engine. Return strictly valid JSON adhering to the schema. Never invent unmentioned units without labeling them clearly.',
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: Type.ARRAY,
+          description: 'Ordered list of syllabus topics with prerequisite mappings',
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              id: { type: Type.STRING },
+              title: { type: Type.STRING },
+              unitOrModule: { type: Type.STRING },
+              description: { type: Type.STRING },
+              confidence: {
+                type: Type.STRING,
+                description: 'Must be high, medium, or uncertain'
               },
-              required: ['id', 'title', 'unitOrModule', 'description', 'confidence', 'prerequisites']
-            }
+              prerequisites: {
+                type: Type.ARRAY,
+                items: { type: Type.STRING }
+              }
+            },
+            required: ['id', 'title', 'unitOrModule', 'description', 'confidence', 'prerequisites']
           }
         }
-      });
-
-      const text = response.text;
-      if (!text) {
-        throw new Error('Empty response from topic extraction model.');
       }
-      const parsed = JSON.parse(text);
-      return parsed.map((item: any, idx: number) => ({
-        id: item.id || `topic_extracted_${idx + 1}`,
-        title: item.title,
-        unitOrModule: item.unitOrModule || 'General Module',
-        description: item.description || '',
-        confidence: ['high', 'medium', 'uncertain'].includes(item.confidence) ? item.confidence : 'medium',
-        prerequisites: Array.isArray(item.prerequisites) ? item.prerequisites : []
-      }));
-    } catch (err: any) {
-      console.warn('Gemini topic extraction fallback:', err);
-      // Fallback deterministic extraction if API is throttled or offline
-      return [
-        {
-          id: 'topic_event_loop',
-          title: 'Event Loop & Libuv Architecture',
-          unit: 'Module 1: Architecture',
-          unitOrModule: 'Module 1: Architecture',
-          description: 'Single-threaded event loop phases, microtasks vs macrotasks, and libuv thread pool.',
-          confidence: 'high',
-          prerequisites: []
-        },
-        {
-          id: 'topic_microtasks',
-          title: 'Microtasks (nextTick & Promises)',
-          unit: 'Module 1: Architecture',
-          unitOrModule: 'Module 1: Architecture',
-          description: 'Execution priority of process.nextTick vs Promise microtasks.',
-          confidence: 'high',
-          prerequisites: ['topic_event_loop']
-        },
-        {
-          id: 'topic_buffers_streams',
-          title: 'Buffers, Binary Data & Backpressure',
-          unit: 'Module 2: Streams',
-          unitOrModule: 'Module 2: Streams',
-          description: 'Buffer.alloc safety, Stream pipelines, and handling backpressure with drain.',
-          confidence: 'high',
-          prerequisites: ['topic_event_loop']
-        },
-        {
-          id: 'topic_cluster_scaling',
-          title: 'Process Management, Clustering & IPC',
-          unit: 'Module 3: Scalability',
-          unitOrModule: 'Module 3: Scalability',
-          description: 'Multi-process architecture, IPC message passing, and master-worker socket sharing.',
-          confidence: 'medium',
-          prerequisites: ['topic_buffers_streams', 'topic_microtasks']
-        }
-      ];
+    });
+
+    const text = response.text;
+    if (!text) {
+      throw new Error('Gemini returned an empty response. Check network connectivity or syllabus format.');
     }
+
+    let parsed: any[];
+    try {
+      parsed = JSON.parse(text);
+    } catch (parseErr) {
+      throw new Error('Failed to parse structured JSON response from Vertex AI topic extraction.');
+    }
+
+    if (!Array.isArray(parsed) || parsed.length === 0) {
+      throw new Error('No discrete technical topics could be extracted from the supplied text.');
+    }
+
+    return parsed.map((item: any, idx: number) => ({
+      id: item.id || `topic_${Date.now()}_${idx + 1}`,
+      title: String(item.title || `Topic ${idx + 1}`).trim(),
+      unitOrModule: String(item.unitOrModule || 'General Module').trim(),
+      description: String(item.description || '').trim(),
+      confidence: ['high', 'medium', 'uncertain'].includes(item.confidence)
+        ? (item.confidence as 'high' | 'medium' | 'uncertain')
+        : 'medium',
+      prerequisites: Array.isArray(item.prerequisites) ? item.prerequisites : [],
+      order: idx + 1
+    }));
   },
 
   /**
@@ -221,7 +199,6 @@ Task:
       };
     } catch (err: any) {
       console.error('Verification error:', err);
-      // Safe degraded state matching specification
       return {
         resourceId: resourceUrl,
         status: 'unable_to_verify',
@@ -290,7 +267,6 @@ Student's question: "${studentQuestion}"
 
       const text = response.text || 'I apologize, but I could not formulate an answer at this moment.';
 
-      // Extract markdown links or return standard node doc citations
       const citations: { title: string; url: string }[] = [
         {
           title: 'Node.js Official Documentation',
