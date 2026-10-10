@@ -1,5 +1,12 @@
 import { GoogleGenAI, Type } from '@google/genai';
-import { ExtractedTopic, VerificationReport, ResourceClaimComparison } from '../types';
+import {
+  ExtractedTopic,
+  VerificationReport,
+  CreateRoadmapPayload,
+  SavedRoadmap,
+  RoadmapNode,
+  RoadmapPhase
+} from '../types';
 
 export const geminiService = {
   getAiClient() {
@@ -7,6 +14,234 @@ export const geminiService = {
       apiKey: process.env.API_KEY,
       vertexai: true
     });
+  },
+
+  /**
+   * Generates a fully personalized, goal-specific learning roadmap using Vertex AI Gemini 2.5 Flash
+   * Supports any skill, career target, or custom goal with strict prerequisite ordering & phase milestones
+   */
+  async generatePersonalizedRoadmap(
+    payload: CreateRoadmapPayload,
+    studentId: string = 'usr_student_01'
+  ): Promise<SavedRoadmap> {
+    if (!payload.goalTitle || !payload.goalTitle.trim()) {
+      throw new Error('Please enter a specific learning goal or skill.');
+    }
+
+    const ai = this.getAiClient();
+
+    const focusInstruction = {
+      project_oriented: 'Focus heavily on hands-on application architecture, production patterns, and concrete milestone projects.',
+      interview_prep: 'Emphasize algorithmic efficiency, data flow, concurrency edge cases, and high-frequency technical interview questions.',
+      exam_prep: 'Structure systematically around theoretical models, definitions, runtime mechanics, and academic syllabus standards.',
+      comprehensive: 'Deliver a balanced, complete engineering progression from fundamentals to enterprise-grade mastery.'
+    }[payload.targetFocus] || 'Comprehensive mastery.';
+
+    const prompt = `You are a world-class principal curriculum engineer and technical learning roadmap designer.
+Generate a structured, highly personalized learning roadmap for this student's specific goal.
+
+STUDENT PROFILE & REQUEST:
+- Category: ${payload.category}
+- Learning Goal: "${payload.goalTitle.trim()}"
+- Student Details & Context: "${payload.goalDescription || 'None provided'}"
+- Current Skill Level: ${payload.skillLevel}
+- Prior Knowledge: "${payload.priorKnowledge || 'None specified'}"
+- Available Study Time: ${payload.weeklyHours} hours per week
+- Target Pedagogical Focus: ${focusInstruction}
+${payload.syllabusContent ? `\nReference Syllabus/Curriculum Text:\n${payload.syllabusContent}\n` : ''}
+
+CRITICAL RULES:
+1. Make the topic sequence tailored to THIS EXACT SKILL/GOAL. (e.g. Android must cover Kotlin, Jetpack Compose, Coroutines, StateFlow, Room, Architecture; SQL must cover Relational Design, Joins, Indexing, Query Optimization).
+2. Group topics into 3 to 5 logical PHASES (e.g. Phase 1: Foundations, Phase 2: Core Architecture, etc.).
+3. Each topic MUST have:
+   - "id": A unique snake_case identifier (e.g. "topic_kotlin_basics", "topic_compose_state").
+   - "title": Clean, professional title.
+   - "phaseId": Matching the parent phase ID.
+   - "description": 1-2 sentence learning objective of what the student will be able to build or explain.
+   - "prerequisites": Array of topic IDs that MUST strictly be learned before this topic. The first 1-2 foundational topics must have EMPTY prerequisites so the learner can start immediately.
+   - "estimatedHours": Realistic study hours based on student's skill level.
+   - "keyCompetencies": Array of 2-3 specific subtopics or skills mastered.
+4. ABSOLUTELY NO CIRCULAR DEPENDENCIES (if Topic B requires Topic A, Topic A cannot require Topic B).
+5. Never invent generic placeholder titles like "Topic 1" or "Phase 1 Topic". Make every topic concrete and technically rich.`;
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+      config: {
+        systemInstruction:
+          'You are a senior engineering curriculum architect. Output valid JSON strictly conforming to the requested schema. Ensure prerequisite graphs are strictly acyclic.',
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            title: { type: Type.STRING, description: 'Engaging, professional roadmap title' },
+            description: { type: Type.STRING, description: 'Summary of the learning path and target competencies' },
+            totalEstimatedHours: { type: Type.NUMBER, description: 'Total study hours for complete path' },
+            phases: {
+              type: Type.ARRAY,
+              description: '3 to 5 logical phases',
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  id: { type: Type.STRING },
+                  title: { type: Type.STRING },
+                  description: { type: Type.STRING },
+                  order: { type: Type.NUMBER },
+                  estimatedWeeks: { type: Type.NUMBER },
+                  milestoneProject: { type: Type.STRING, description: 'Practical milestone project for this phase' }
+                },
+                required: ['id', 'title', 'description', 'order']
+              }
+            },
+            topics: {
+              type: Type.ARRAY,
+              description: 'Ordered list of concrete technical topics',
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  id: { type: Type.STRING },
+                  title: { type: Type.STRING },
+                  phaseId: { type: Type.STRING },
+                  description: { type: Type.STRING },
+                  prerequisites: {
+                    type: Type.ARRAY,
+                    items: { type: Type.STRING }
+                  },
+                  estimatedHours: { type: Type.NUMBER },
+                  keyCompetencies: {
+                    type: Type.ARRAY,
+                    items: { type: Type.STRING }
+                  }
+                },
+                required: ['id', 'title', 'phaseId', 'description', 'prerequisites']
+              }
+            }
+          },
+          required: ['title', 'description', 'totalEstimatedHours', 'phases', 'topics']
+        }
+      }
+    });
+
+    const responseText = response.text;
+    if (!responseText) {
+      throw new Error('Vertex AI returned an empty response payload. Please check API quota or network connectivity.');
+    }
+
+    let parsed: any;
+    try {
+      parsed = JSON.parse(responseText);
+    } catch (parseErr) {
+      throw new Error('Failed to parse structured JSON response from Vertex AI roadmap generator.');
+    }
+
+    if (!parsed.topics || !Array.isArray(parsed.topics) || parsed.topics.length === 0) {
+      throw new Error('Model did not return valid topics for this learning goal.');
+    }
+
+    // -------------------------------------------------------------
+    // Post-Generation Validation: Cycle Detection & Graph Sanitization
+    // -------------------------------------------------------------
+    const rawTopics: any[] = parsed.topics;
+    const rawPhases: any[] = parsed.phases || [];
+    const validTopicIds = new Set<string>(rawTopics.map((t) => t.id));
+
+    // DFS Cycle Detection & Sanitization
+    const sanitizedNodes: RoadmapNode[] = [];
+    const sanitizedPrereqMap = new Map<string, string[]>();
+
+    for (const t of rawTopics) {
+      // Filter out self-dependencies or non-existent IDs
+      const cleanPrereqs = (t.prerequisites || []).filter(
+        (pid: string) => pid !== t.id && validTopicIds.has(pid)
+      );
+      sanitizedPrereqMap.set(t.id, cleanPrereqs);
+    }
+
+    // Validate acyclicity for each node using DFS
+    for (const [nodeId, prereqs] of sanitizedPrereqMap.entries()) {
+      const filteredPrereqs: string[] = [];
+
+      for (const pId of prereqs) {
+        // Check if there is already a path from pId to nodeId (which would form a cycle)
+        const visited = new Set<string>();
+        const hasPath = (curr: string, target: string): boolean => {
+          if (curr === target) return true;
+          visited.add(curr);
+          const nexts = sanitizedPrereqMap.get(curr) || [];
+          for (const n of nexts) {
+            if (!visited.has(n) && hasPath(n, target)) return true;
+          }
+          return false;
+        };
+
+        if (hasPath(pId, nodeId)) {
+          console.warn(`[Cycle Guard] Removed circular prerequisite: ${nodeId} -> ${pId}`);
+        } else {
+          filteredPrereqs.push(pId);
+        }
+      }
+      sanitizedPrereqMap.set(nodeId, filteredPrereqs);
+    }
+
+    // Build RoadmapNodes
+    rawTopics.forEach((t, idx) => {
+      const prereqs = sanitizedPrereqMap.get(t.id) || [];
+      const isStartNode = prereqs.length === 0;
+
+      const parentPhase = rawPhases.find((p) => p.id === t.phaseId);
+      const unitName = parentPhase ? parentPhase.title : `Module ${Math.floor(idx / 3) + 1}`;
+
+      sanitizedNodes.push({
+        topicId: t.id,
+        title: String(t.title || `Topic ${idx + 1}`).trim(),
+        unit: unitName,
+        phaseId: t.phaseId || rawPhases[0]?.id,
+        status: isStartNode ? 'available' : 'locked',
+        order: idx + 1,
+        prerequisitesMet: isStartNode,
+        estimatedHours: t.estimatedHours || Math.max(3, Math.round(payload.weeklyHours / 2)),
+        learningObjective: t.description || 'Master core competency and practical patterns.',
+        keyCompetencies: Array.isArray(t.keyCompetencies) ? t.keyCompetencies : []
+      });
+    });
+
+    // Ensure at least the very first node is unlocked if none were
+    if (!sanitizedNodes.some((n) => n.status === 'available')) {
+      sanitizedNodes[0].status = 'available';
+      sanitizedNodes[0].prerequisitesMet = true;
+    }
+
+    // Build RoadmapPhases
+    const formattedPhases: RoadmapPhase[] = rawPhases.map((p, idx) => {
+      const phaseTopics = sanitizedNodes.filter((n) => n.phaseId === p.id).map((n) => n.topicId);
+      return {
+        id: p.id || `phase_${idx + 1}`,
+        title: p.title || `Phase ${idx + 1}`,
+        description: p.description || '',
+        order: p.order || idx + 1,
+        estimatedWeeks: p.estimatedWeeks || Math.ceil(sanitizedNodes.length / 2),
+        milestoneProject: p.milestoneProject,
+        topicIds: phaseTopics
+      };
+    });
+
+    const roadmapId = `roadmap_${payload.goalTitle.toLowerCase().replace(/[^a-z0-9]+/g, '_').slice(0, 24)}_${Date.now()}`;
+
+    return {
+      id: roadmapId,
+      studentId,
+      title: parsed.title || payload.goalTitle,
+      category: payload.category,
+      description: parsed.description || `Personalized learning roadmap for ${payload.goalTitle}.`,
+      targetFocus: payload.targetFocus,
+      skillLevel: payload.skillLevel,
+      weeklyHours: payload.weeklyHours,
+      totalEstimatedHours: parsed.totalEstimatedHours || sanitizedNodes.reduce((acc, n) => acc + (n.estimatedHours || 4), 0),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      phases: formattedPhases,
+      nodes: sanitizedNodes
+    };
   },
 
   /**
@@ -180,10 +415,16 @@ Task:
       const status = validStatuses.includes(data.status) ? data.status : 'unable_to_verify';
 
       return {
+        id: `ver_${Date.now()}`,
         resourceId: resourceUrl,
+        resourceTitle,
+        resourceUrl,
+        topicId: topicContext,
         status,
+        errorCategory: 'none',
         checkedAt: new Date().toISOString(),
-        assessedContentSummary: data.assessedContentSummary || 'Evaluated technical claims against official specifications.',
+        assessedContentScope: data.assessedContentSummary || 'Evaluated technical claims against official specifications.',
+        contentAccessMethod: 'official_spec_ingest',
         officialDocLinks: [
           {
             title: 'Official Node.js Specification',
@@ -200,10 +441,16 @@ Task:
     } catch (err: any) {
       console.error('Verification error:', err);
       return {
+        id: `ver_${Date.now()}`,
         resourceId: resourceUrl,
+        resourceTitle,
+        resourceUrl,
+        topicId: topicContext,
         status: 'unable_to_verify',
+        errorCategory: 'inaccessible_content',
         checkedAt: new Date().toISOString(),
-        assessedContentSummary: 'Automated verification query could not establish complete ground-truth verification.',
+        assessedContentScope: 'Automated verification query could not establish complete ground-truth verification.',
+        contentAccessMethod: 'failed_access',
         officialDocLinks: [
           {
             title: 'Node.js Official Documentation',
