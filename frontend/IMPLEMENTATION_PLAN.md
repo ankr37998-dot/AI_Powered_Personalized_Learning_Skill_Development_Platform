@@ -6,10 +6,10 @@
   - Formulated schema definitions (`types.ts`), curated Node.js backend path (`constants.ts`), and documentation.
 
 - [x] **Phase 1 — Project Skeleton, Design System, Shared Layouts & Navigation**
-  - Implemented responsive Tailwind UI, Navbar, role switcher (Student / Admin), and in-app architecture docs modal (`DocsViewer.tsx`).
+  - Implemented responsive Tailwind UI, Sidebar, Topbar, and in-app architecture docs modal (`DocsViewer.tsx`).
 
-- [x] **Phase 2 — Role-Based Access Control**
-  - Implemented Student vs Administrator persona modes with segregated catalog controls.
+- [x] **Phase 2 — Student-Only Access Model**
+  - Removed all obsolete Admin and Developer roles, dashboards, and role-switching controls. Established Student as the sole product role.
 
 - [x] **Phase 3 — Syllabus Input, Topic Extraction & Roadmap Generation**
   - Built `SyllabusUploader.tsx` with Gemini 2.5 Flash JSON schema extraction, customizable topic table, and prerequisite graph ordering.
@@ -26,7 +26,7 @@
 - [x] **Phase 7 — Assessments & Evidence-Based Weak-Subtopic Analysis**
   - Built `AssessmentQuiz.tsx` and `WeakTopicAnalysis.tsx` which calculates factual accuracy rates per tagged subtopic without guessing.
 
-- [x] **Phase 8 — Administrator Tools & Governance Console (Completed)**
-  - Built `adminService.ts` for role authorization, DFS cycle detection, last-admin safeguards, and topic dependency audits.
-  - Upgraded `AdminDashboard.tsx` with live database metrics, paginated user management, prerequisite graph manager, and issue resolution workflows.
-  - Built `adminTestRunner.ts` automated security test suite with 8 test cases.
+- [x] **Phase 8 — Student Learning Experience Redesign**
+  - Apple-inspired minimalism + roadmap.sh connected milestone canvas.
+  - Functional persistent Light and Dark themes.
+  - Fully responsive from 320px to 1920px+ viewports.
