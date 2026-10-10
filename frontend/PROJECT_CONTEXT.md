@@ -11,18 +11,14 @@ Syllabus Ingestion → Structured Topic Extraction → Prerequisite Roadmap → 
 ## 3. Technology Stack & Integration Architecture
 - **Frontend:** React 18+ (TSX), Tailwind CSS, Lucide icons.
 - **AI Integration:** Google Vertex AI / Gemini 2.5 Flash SDK (`@google/genai`) using structured JSON response schemas and system instructions.
-- **State & Data Store:** Client storage engine (`storageService.ts`) with schema validation, prerequisite unlock algorithms, and assessment scoring.
-- **Roles:**
-  - **Student:** Upload syllabus, edit extracted units, navigate prerequisite-ordered roadmaps, review verification evidence reports, ask doubts via Gemini tutor, take diagnostic quizzes.
-  - **Administrator:** Manage the topic and prerequisite catalog, manage resource registry, inspect audit logs, and review potential specification mismatches.
+- **Admin & Platform Governance (`services/adminService.ts`):**
+  - Role-enforced authorization (`adminService.assertAdmin`). Students rejected with 403 Forbidden.
+  - DFS graph cycle detection preventing direct self-dependencies and multi-node circular chains (e.g., `A ➔ B ➔ C ➔ A`).
+  - Last-active administrator protection against demotion or account suspension.
+  - Topic dependency audits blocking accidental deletion of topics referenced by resources or roadmaps.
+  - Automated security test suite runner (`services/adminTestRunner.ts`).
 
-## 4. Key Differentiator: Official Documentation Verification
-The platform verifies external educational content against official documentation with 4 specific statuses:
-1. `Verified against cited references`
-2. `Potential mismatch` (e.g., teaching deprecated `new Buffer()`)
-3. `Unable to verify`
-4. `Verification failed`
-
-## 5. Architectural Risks & Mitigations
-- **Third-Party Video Availability:** Video links can decay or remove transcripts. *Mitigation:* The system reports `unable_to_verify` rather than making up a score or fabricating claims.
-- **Hallucinated Citations:** Large language models may invent doc URLs. *Mitigation:* We supply authoritative source domains (nodejs.org, whatwg.org) directly in the model context and enforce strict citation output schemas.
+## 4. Roles Implemented
+- **Student:** Upload syllabus, edit extracted units, navigate prerequisite-ordered roadmaps, review verification evidence reports, ask doubts via Gemini tutor, take diagnostic quizzes.
+- **Administrator:** Manage the topic and prerequisite catalog, manage resource registry, inspect audit logs, review reported broken links, and manage user accounts.
+- **No Faculty Role:** Faculty dashboards, cohorts, or instructor-management workflows are explicitly omitted per architecture specification.
