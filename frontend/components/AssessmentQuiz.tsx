@@ -1,75 +1,96 @@
 import React, { useState } from 'react';
-import { AssessmentQuestion, AssessmentAttempt, CatalogTopic } from '../types';
-import { storageService } from '../services/storageService';
+import {
+  AssessmentQuestion,
+  AssessmentAttempt,
+  CatalogTopic,
+  LearningResource,
+  UserProfile
+} from '../types';
+import { assessmentService } from '../services/assessmentService';
 import {
   Award,
   CheckCircle2,
   XCircle,
   ArrowRight,
+  ArrowLeft,
   ExternalLink,
   BookOpen,
   HelpCircle,
-  RotateCcw
+  RotateCcw,
+  Sparkles,
+  Check,
+  AlertCircle
 } from 'lucide-react';
 
 interface AssessmentQuizProps {
   questions: AssessmentQuestion[];
   catalog: CatalogTopic[];
+  resources: LearningResource[];
   selectedTopicId: string;
+  userProfile: UserProfile;
   onAssessmentCompleted: (attempt: AssessmentAttempt) => void;
   onNavigateToRoadmap: () => void;
+  onOpenAssistant: (topicId: string) => void;
 }
 
 export const AssessmentQuiz: React.FC<AssessmentQuizProps> = ({
   questions,
   catalog,
+  resources,
   selectedTopicId,
+  userProfile,
   onAssessmentCompleted,
-  onNavigateToRoadmap
+  onNavigateToRoadmap,
+  onOpenAssistant
 }) => {
-  const [topicFilter, setTopicFilter] = useState(selectedTopicId || 'all');
+  const [activeTopicId, setActiveTopicId] = useState(selectedTopicId || catalog[0]?.id || 'topic_event_loop');
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, number>>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [lastAttempt, setLastAttempt] = useState<AssessmentAttempt | null>(null);
+  const [latestAttempt, setLatestAttempt] = useState<AssessmentAttempt | null>(null);
 
-  const activeQuestions = questions.filter(
-    (q) => topicFilter === 'all' || q.topicId === topicFilter
+  const currentTopic = catalog.find((c) => c.id === activeTopicId);
+  const topicQuestions = questions.filter((q) => q.topicId === activeTopicId);
+
+  const topicAssessmentResources = resources.filter(
+    (r) => r.topicId === activeTopicId && (r.type === 'mcq' || r.type === 'practice')
   );
 
-  const handleSelectOption = (questionId: string, optionIndex: number) => {
-    if (isSubmitted) return;
-    setSelectedAnswers((prev) => ({ ...prev, [questionId]: optionIndex }));
+  const currentQuestion = topicQuestions[currentQuestionIndex];
+  const totalQuestions = topicQuestions.length;
+
+  const handleSelectOption = (optIndex: number) => {
+    if (isSubmitted || !currentQuestion) return;
+    setSelectedAnswers((prev) => ({
+      ...prev,
+      [currentQuestion.id]: optIndex
+    }));
+  };
+
+  const handleNextQuestion = () => {
+    if (currentQuestionIndex < totalQuestions - 1) {
+      setCurrentQuestionIndex((prev) => prev + 1);
+    }
+  };
+
+  const handlePrevQuestion = () => {
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex((prev) => prev - 1);
+    }
   };
 
   const handleSubmitQuiz = () => {
-    if (activeQuestions.length === 0) return;
+    if (totalQuestions === 0) return;
 
-    let correctScore = 0;
-    const answerRecords = activeQuestions.map((q) => {
-      const selected = selectedAnswers[q.id];
-      const isCorrect = selected === q.correctOptionIndex;
-      if (isCorrect) correctScore += 1;
-      return {
-        questionId: q.id,
-        subtopic: q.subtopic,
-        selectedOption: selected ?? -1,
-        isCorrect
-      };
-    });
+    const attempt = assessmentService.scoreAttempt(
+      userProfile,
+      activeTopicId,
+      currentTopic?.title || 'Active Topic',
+      selectedAnswers,
+      questions
+    );
 
-    const targetTopicId = topicFilter === 'all' ? activeQuestions[0].topicId : topicFilter;
-
-    const attempt: AssessmentAttempt = {
-      id: `att_${Date.now()}`,
-      topicId: targetTopicId,
-      timestamp: new Date().toISOString(),
-      answers: answerRecords,
-      totalScore: correctScore,
-      maxScore: activeQuestions.length
-    };
-
-    storageService.saveAttempt(attempt);
-    setLastAttempt(attempt);
+    setLatestAttempt(attempt);
     setIsSubmitted(true);
     onAssessmentCompleted(attempt);
   };
@@ -77,193 +98,236 @@ export const AssessmentQuiz: React.FC<AssessmentQuizProps> = ({
   const handleResetQuiz = () => {
     setSelectedAnswers({});
     setIsSubmitted(false);
-    setLastAttempt(null);
+    setLatestAttempt(null);
+    setCurrentQuestionIndex(0);
   };
 
-  const scorePercentage = lastAttempt
-    ? Math.round((lastAttempt.totalScore / lastAttempt.maxScore) * 100)
-    : 0;
+  const answeredCount = Object.keys(selectedAnswers).length;
+  const progressPercent = totalQuestions > 0 ? Math.round((answeredCount / totalQuestions) * 100) : 0;
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="bg-slate-800/80 border border-slate-700 rounded-2xl p-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center space-x-2 text-xs text-cyan-400 font-bold uppercase">
-              <Award className="w-4 h-4" />
-              <span>Evidence-Based Diagnostic Assessments</span>
-            </div>
-            <h2 className="text-xl font-bold text-white mt-1">Technical Practice & Mastery Checks</h2>
-            <p className="text-xs text-slate-300 mt-0.5">
-              Every question is tagged with a precise subtopic to generate factual weak-topic analysis.
-            </p>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <span className="text-xs text-slate-400">Select Topic:</span>
-            <select
-              value={topicFilter}
-              onChange={(e) => {
-                setTopicFilter(e.target.value);
-                handleResetQuiz();
-              }}
-              className="bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500"
-            >
-              <option value="all">All Supported Diagnostic Questions</option>
-              {catalog.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.title}
-                </option>
-              ))}
-            </select>
-          </div>
+    <div className="space-y-4">
+      {/* Header & Topic Selector */}
+      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+        <div>
+          <span className="font-bold uppercase tracking-wider text-slate-400 text-[10px] block">
+            Practice Module
+          </span>
+          <span className="font-bold text-white text-sm">
+            {currentTopic ? currentTopic.title : 'Diagnostic Quiz'}
+          </span>
         </div>
 
-        {/* Results summary pill if submitted */}
-        {isSubmitted && lastAttempt && (
+        <div className="flex items-center space-x-2">
+          <label className="text-slate-400 font-medium">Topic:</label>
+          <select
+            value={activeTopicId}
+            onChange={(e) => {
+              setActiveTopicId(e.target.value);
+              handleResetQuiz();
+            }}
+            className="bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1 text-slate-200 focus:outline-none"
+          >
+            {catalog.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.title}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {/* RESULT DISPLAY IF SUBMITTED */}
+      {isSubmitted && latestAttempt ? (
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-5">
           <div
-            className={`mt-4 p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
-              scorePercentage >= 75
-                ? 'bg-emerald-950/40 border-emerald-500/50 text-emerald-300'
-                : scorePercentage >= 50
-                ? 'bg-indigo-950/40 border-indigo-500/50 text-indigo-300'
-                : 'bg-rose-950/40 border-rose-500/50 text-rose-300'
+            className={`p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+              latestAttempt.scorePercentage >= 75
+                ? 'bg-emerald-950/30 border-emerald-500/40 text-emerald-200'
+                : 'bg-rose-950/30 border-rose-500/40 text-rose-200'
             }`}
           >
             <div>
-              <div className="font-bold text-sm">
-                Diagnostic Result: {lastAttempt.totalScore} / {lastAttempt.maxScore} Correct ({scorePercentage}%)
+              <div className="flex items-center space-x-2 font-bold text-sm sm:text-base">
+                {latestAttempt.scorePercentage >= 75 ? (
+                  <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                ) : (
+                  <AlertCircle className="w-5 h-5 text-amber-400 flex-shrink-0" />
+                )}
+                <span>
+                  Result: {latestAttempt.totalScore} / {latestAttempt.maxScore} Correct ({latestAttempt.scorePercentage}%)
+                </span>
               </div>
-              <p className="text-xs mt-0.5 text-slate-300">
-                {scorePercentage >= 75
-                  ? 'Great performance! Your prerequisite status for dependent topics has been unlocked.'
-                  : 'Diagnostic evidence recorded. Inspect the subtopic breakdown below for revision priorities.'}
+              <p className="text-xs text-slate-300 mt-0.5">
+                {latestAttempt.scorePercentage >= 75
+                  ? 'Mastery threshold satisfied (≥75%). Dependent topics are unlocked on your roadmap.'
+                  : 'Diagnostic evidence recorded. Inspect the subtopic breakdown below to prioritize revision.'}
               </p>
             </div>
 
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 flex-shrink-0">
               <button
                 onClick={handleResetQuiz}
-                className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg border border-slate-700 flex items-center space-x-1"
+                className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-semibold flex items-center space-x-1.5 transition border border-slate-700"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
-                <span>Retake Quiz</span>
+                <span>Retake</span>
               </button>
               <button
-                onClick={onNavigateToRoadmap}
-                className="text-xs bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-3 py-1.5 rounded-lg flex items-center space-x-1"
+                onClick={() => onOpenAssistant(activeTopicId)}
+                className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold flex items-center space-x-1.5 transition shadow-sm"
               >
-                <span>View Roadmap</span>
-                <ArrowRight className="w-3.5 h-3.5" />
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Ask AI</span>
               </button>
             </div>
           </div>
-        )}
-      </div>
 
-      {/* Questions List */}
-      <div className="space-y-4">
-        {activeQuestions.map((q, qIndex) => {
-          const selectedOption = selectedAnswers[q.id];
-          const hasAnswered = typeof selectedOption === 'number';
+          {/* Question Breakdown */}
+          <div className="space-y-3">
+            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+              Answers & Authoritative Citations
+            </h4>
 
-          return (
-            <div
-              key={q.id}
-              className="bg-slate-800 border border-slate-700/80 rounded-2xl p-5 space-y-4 transition"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <div className="flex items-center space-x-2 text-xs text-slate-400 mb-1">
-                    <span className="font-mono font-bold text-indigo-400">Q{qIndex + 1}</span>
-                    <span>•</span>
-                    <span className="bg-slate-900 px-2 py-0.5 rounded text-[11px] text-cyan-300 border border-slate-700">
-                      Subtopic: {q.subtopic}
+            {latestAttempt.answers.map((ans, idx) => {
+              const questionObj = topicQuestions.find((q) => q.id === ans.questionId);
+
+              return (
+                <div
+                  key={idx}
+                  className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-2 text-xs"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <div className="text-[11px] text-slate-400 mb-0.5">
+                        <span className="font-mono font-bold text-indigo-400">Q{idx + 1}</span> · Subtopic: {ans.subtopic}
+                      </div>
+                      <div className="font-semibold text-white">{questionObj?.questionText}</div>
+                    </div>
+                    <span
+                      className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase ${
+                        ans.isCorrect
+                          ? 'bg-emerald-500/20 text-emerald-400'
+                          : 'bg-rose-500/20 text-rose-400'
+                      }`}
+                    >
+                      {ans.isCorrect ? 'Correct' : 'Incorrect'}
                     </span>
                   </div>
-                  <h3 className="font-semibold text-white text-sm sm:text-base">{q.questionText}</h3>
-                </div>
-              </div>
 
-              {/* Options */}
-              <div className="space-y-2">
-                {q.options.map((option, optIdx) => {
-                  const isSelected = selectedOption === optIdx;
-                  const isCorrect = q.correctOptionIndex === optIdx;
-
-                  let optionStyle =
-                    'bg-slate-900/80 border-slate-700 text-slate-200 hover:bg-slate-700/80 hover:border-slate-600';
-
-                  if (isSubmitted) {
-                    if (isCorrect) {
-                      optionStyle = 'bg-emerald-950/40 border-emerald-500 text-emerald-200';
-                    } else if (isSelected && !isCorrect) {
-                      optionStyle = 'bg-rose-950/40 border-rose-500 text-rose-200';
-                    } else {
-                      optionStyle = 'bg-slate-900/40 border-slate-800 text-slate-500 opacity-60';
-                    }
-                  } else if (isSelected) {
-                    optionStyle = 'bg-indigo-950/60 border-indigo-500 text-indigo-200 ring-1 ring-indigo-500/50';
-                  }
-
-                  return (
-                    <button
-                      key={optIdx}
-                      type="button"
-                      disabled={isSubmitted}
-                      onClick={() => handleSelectOption(q.id, optIdx)}
-                      className={`w-full text-left p-3 rounded-xl border text-xs sm:text-sm transition flex items-center justify-between ${optionStyle}`}
-                    >
-                      <span className="flex-1">{option}</span>
-                      {isSubmitted && isCorrect && (
-                        <CheckCircle2 className="w-4 h-4 text-emerald-400 ml-2 flex-shrink-0" />
-                      )}
-                      {isSubmitted && isSelected && !isCorrect && (
-                        <XCircle className="w-4 h-4 text-rose-400 ml-2 flex-shrink-0" />
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Explanation and Official Doc citation when submitted */}
-              {isSubmitted && (
-                <div className="pt-3 border-t border-slate-700/80 space-y-2 text-xs">
-                  <div className="text-slate-300">
-                    <span className="font-bold text-cyan-400">Technical Rationale: </span>
-                    {q.explanation}
+                  <div className="text-slate-300 bg-slate-900 p-2.5 rounded-lg border border-slate-800/80">
+                    <span className="font-semibold text-cyan-400">Rationale: </span>
+                    {ans.explanation}
                   </div>
-                  <div className="flex items-center space-x-1.5 text-slate-400">
-                    <BookOpen className="w-3.5 h-3.5 text-indigo-400" />
-                    <span>Official Citation: </span>
+
+                  <div className="text-[11px] text-slate-400 flex items-center space-x-1.5">
+                    <BookOpen className="w-3 h-3 text-indigo-400" />
+                    <span>Official Doc:</span>
                     <a
-                      href={q.officialDocCitation.url}
+                      href={ans.citationUrl}
                       target="_blank"
                       rel="noreferrer"
                       className="text-indigo-300 hover:underline flex items-center"
                     >
-                      {q.officialDocCitation.title} <ExternalLink className="w-3 h-3 ml-1" />
+                      {ans.citationTitle} <ExternalLink className="w-3 h-3 ml-1" />
                     </a>
                   </div>
                 </div>
-              )}
+              );
+            })}
+          </div>
+        </div>
+      ) : (
+        /* QUIZ IN PROGRESS */
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
+          {totalQuestions === 0 ? (
+            <div className="p-6 text-center text-slate-400 text-xs">
+              No internal diagnostic questions found for this topic.
             </div>
-          );
-        })}
-      </div>
+          ) : (
+            <>
+              {/* Stepper Progress */}
+              <div className="flex items-center justify-between text-xs text-slate-400">
+                <span>Question {currentQuestionIndex + 1} of {totalQuestions}</span>
+                <span className="font-mono">{progressPercent}% complete</span>
+              </div>
+              <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                <div
+                  className="bg-indigo-500 h-full transition-all duration-300"
+                  style={{ width: `${((currentQuestionIndex + 1) / totalQuestions) * 100}%` }}
+                />
+              </div>
 
-      {/* Quiz Submit button */}
-      {!isSubmitted && (
-        <div className="flex justify-end pt-2">
-          <button
-            onClick={handleSubmitQuiz}
-            disabled={Object.keys(selectedAnswers).length === 0}
-            className="px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 disabled:opacity-50 text-white font-semibold rounded-xl text-sm shadow-lg shadow-indigo-600/30 transition flex items-center space-x-2"
-          >
-            <span>Submit Assessment & Run Diagnostics</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
+              {/* Question Text */}
+              {currentQuestion && (
+                <div className="space-y-3 pt-1">
+                  <div className="text-xs text-indigo-400 font-mono font-semibold">
+                    Subtopic: {currentQuestion.subtopic}
+                  </div>
+                  <h3 className="text-sm sm:text-base font-semibold text-white leading-snug">
+                    {currentQuestion.questionText}
+                  </h3>
+
+                  {/* Options */}
+                  <div className="space-y-2 pt-1">
+                    {currentQuestion.options.map((opt, idx) => {
+                      const isSelected = selectedAnswers[currentQuestion.id] === idx;
+
+                      return (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => handleSelectOption(idx)}
+                          className={`w-full text-left p-3 rounded-xl border text-xs transition flex items-center justify-between ${
+                            isSelected
+                              ? 'bg-indigo-950/60 border-indigo-500 text-white font-medium ring-1 ring-indigo-500'
+                              : 'bg-slate-800/80 border-slate-700/80 text-slate-300 hover:bg-slate-800 hover:border-slate-600'
+                          }`}
+                        >
+                          <span>{opt}</span>
+                          {isSelected && <Check className="w-4 h-4 text-indigo-400 ml-2 flex-shrink-0" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Navigation controls */}
+              <div className="flex items-center justify-between pt-3 border-t border-slate-800">
+                <button
+                  type="button"
+                  disabled={currentQuestionIndex === 0}
+                  onClick={handlePrevQuestion}
+                  className="px-3.5 py-1.5 bg-slate-800 text-slate-300 disabled:opacity-30 rounded-lg text-xs font-semibold flex items-center space-x-1"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                  <span>Previous</span>
+                </button>
+
+                {currentQuestionIndex < totalQuestions - 1 ? (
+                  <button
+                    type="button"
+                    onClick={handleNextQuestion}
+                    className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold flex items-center space-x-1 transition shadow-sm"
+                  >
+                    <span>Next</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={answeredCount === 0}
+                    onClick={handleSubmitQuiz}
+                    className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white rounded-lg text-xs font-bold flex items-center space-x-1.5 transition shadow-sm"
+                  >
+                    <span>Submit Quiz</span>
+                    <CheckCircle2 className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>
