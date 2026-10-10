@@ -120,6 +120,7 @@ export const CURATED_CATALOG: CatalogTopic[] = [
 ];
 
 export const INITIAL_RESOURCES: LearningResource[] = [
+  // --- Node.js & Core Backend ---
   {
     id: 'res_1',
     topicId: 'topic_event_loop',
@@ -379,6 +380,147 @@ export const INITIAL_RESOURCES: LearningResource[] = [
     authorOrChannel: 'CogniPath Technical Steering',
     provenance: 'curated',
     isInternalAssessment: true,
+    verificationStatus: 'verified_against_cited_references'
+  },
+
+  // --- Android & Kotlin Study Materials ---
+  {
+    id: 'res_android_1',
+    topicId: 'android_compose',
+    subtopics: ['Jetpack Compose', 'Declarative UI', 'Composables'],
+    title: 'Jetpack Compose Basics: Android Developer Codelab',
+    url: 'https://developer.android.com/codelabs/jetpack-compose-basics',
+    platform: 'Android Developers',
+    type: 'practice',
+    difficulty: 'beginner',
+    language: 'English',
+    durationOrReadTime: '45 mins interactive',
+    description: 'Official Google codelab teaching composable functions, layout components, modifiers, state hoisting, and basic list rendering in Jetpack Compose.',
+    isOfficialSource: true,
+    availabilityStatus: 'available',
+    lastCheckedDate: '2025-02-25',
+    authorOrChannel: 'Google Android Team',
+    provenance: 'curated',
+    verificationStatus: 'verified_against_cited_references'
+  },
+  {
+    id: 'res_android_2',
+    topicId: 'kotlin_coroutines',
+    subtopics: ['Coroutines', 'Dispatchers', 'StateFlow'],
+    title: 'Kotlin Coroutines in Android Studio: Complete Guide',
+    url: 'https://developer.android.com/kotlin/coroutines',
+    platform: 'Android Developers',
+    type: 'documentation',
+    difficulty: 'intermediate',
+    language: 'English',
+    durationOrReadTime: '20 mins read',
+    description: 'Authoritative guide to asynchronous programming on Android using Kotlin Coroutines, ViewModelScope, and structured concurrency.',
+    isOfficialSource: true,
+    availabilityStatus: 'available',
+    lastCheckedDate: '2025-02-25',
+    authorOrChannel: 'Google Android Engineering',
+    provenance: 'curated',
+    verificationStatus: 'verified_against_cited_references'
+  },
+
+  // --- React & Web Development Study Materials ---
+  {
+    id: 'res_react_1',
+    topicId: 'react_core',
+    subtopics: ['Components', 'Hooks', 'State Management'],
+    title: 'Describing the UI: Official React.dev Interactive Tutorial',
+    url: 'https://react.dev/learn/describing-the-ui',
+    platform: 'React.dev',
+    type: 'documentation',
+    difficulty: 'beginner',
+    language: 'English',
+    durationOrReadTime: '25 mins read',
+    description: 'The modern official React documentation covering JSX syntax, props, conditional rendering, and rendering lists with keys.',
+    isOfficialSource: true,
+    availabilityStatus: 'available',
+    lastCheckedDate: '2025-02-25',
+    authorOrChannel: 'React Core Team',
+    provenance: 'curated',
+    verificationStatus: 'verified_against_cited_references'
+  },
+  {
+    id: 'res_react_2',
+    topicId: 'react_core',
+    subtopics: ['useEffect', 'Side Effects'],
+    title: 'Synchronizing with Effects: You Might Not Need an Effect',
+    url: 'https://react.dev/learn/you-might-not-need-an-effect',
+    platform: 'React.dev',
+    type: 'article',
+    difficulty: 'intermediate',
+    language: 'English',
+    durationOrReadTime: '15 mins read',
+    description: 'Key guide on preventing infinite re-render loops and managing component state transitions idiomatically in modern React.',
+    isOfficialSource: true,
+    availabilityStatus: 'available',
+    lastCheckedDate: '2025-02-25',
+    authorOrChannel: 'Dan Abramov & React Team',
+    provenance: 'curated',
+    verificationStatus: 'verified_against_cited_references'
+  },
+
+  // --- SQL & Relational Architecture Study Materials ---
+  {
+    id: 'res_sql_1',
+    topicId: 'sql_databases',
+    subtopics: ['SQL Queries', 'Relational Joins', 'Indexing'],
+    title: 'PostgreSQL Tutorial: Essential SQL Queries and Relational Modeling',
+    url: 'https://www.postgresql.org/docs/current/tutorial-sql.html',
+    platform: 'PostgreSQL Official Docs',
+    type: 'documentation',
+    difficulty: 'beginner',
+    language: 'English',
+    durationOrReadTime: '30 mins read',
+    description: 'Official introduction to table definitions, primary keys, foreign keys, SELECT queries, WHERE filters, and relational JOIN operations.',
+    isOfficialSource: true,
+    availabilityStatus: 'available',
+    lastCheckedDate: '2025-02-25',
+    authorOrChannel: 'PostgreSQL Community',
+    provenance: 'curated',
+    verificationStatus: 'verified_against_cited_references'
+  },
+
+  // --- Python & Machine Learning Study Materials ---
+  {
+    id: 'res_python_1',
+    topicId: 'python_core',
+    subtopics: ['Data Structures', 'List Comprehensions', 'OOP'],
+    title: 'The Official Python Tutorial: Data Structures & Modules',
+    url: 'https://docs.python.org/3/tutorial/datastructures.html',
+    platform: 'Python.org',
+    type: 'documentation',
+    difficulty: 'beginner',
+    language: 'English',
+    durationOrReadTime: '20 mins read',
+    description: 'Core language documentation detailing Python lists, tuples, sets, dictionaries, and memory idioms.',
+    isOfficialSource: true,
+    availabilityStatus: 'available',
+    lastCheckedDate: '2025-02-25',
+    authorOrChannel: 'Python Software Foundation',
+    provenance: 'curated',
+    verificationStatus: 'verified_against_cited_references'
+  },
+  {
+    id: 'res_pytorch_1',
+    topicId: 'pytorch_basics',
+    subtopics: ['Tensors', 'Autograd', 'Neural Networks'],
+    title: 'PyTorch Deep Learning 60 Minute Blitz: Official Tutorial',
+    url: 'https://pytorch.org/tutorials/beginner/deep_learning_60min_blitz.html',
+    platform: 'PyTorch.org',
+    type: 'practice',
+    difficulty: 'intermediate',
+    language: 'English',
+    durationOrReadTime: '60 mins hands-on',
+    description: 'Hands-on guide to tensors, GPU acceleration, automatic differentiation (autograd), and training your first neural network classifier.',
+    isOfficialSource: true,
+    availabilityStatus: 'available',
+    lastCheckedDate: '2025-02-25',
+    authorOrChannel: 'PyTorch Core Team',
+    provenance: 'curated',
     verificationStatus: 'verified_against_cited_references'
   }
 ];
