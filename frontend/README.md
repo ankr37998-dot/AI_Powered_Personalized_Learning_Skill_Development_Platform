@@ -1,6 +1,6 @@
-# CogniPath AI — Autonomous Personalized Learning & Resource Verification Platform
+# CogniPath AI — Student Learning & Resource Verification Platform
 
-CogniPath AI is an educational platform for college students and independent developers that emphasizes strict prerequisite sequencing and official-documentation verification over unvalidated content generation.
+CogniPath AI is a personalized learning platform designed entirely for students. It emphasizes strict prerequisite sequencing, interactive learning roadmaps, and official-documentation verification over unvalidated content generation.
 
 ---
 
@@ -10,6 +10,7 @@ CogniPath AI is an educational platform for college students and independent dev
 - **Backend:** Node.js, Express.js REST API with Helmet security headers, CORS, and rate limiting.
 - **Database:** MongoDB Atlas (Mongoose ODM) configured to `cognipath_ai`.
 - **AI Engine:** Google Cloud Vertex AI / Gemini 2.5 Flash SDK (`@google/genai`).
+- **Product Model:** Student-Only Application.
 
 ---
 
@@ -46,8 +47,12 @@ npm run dev
 
 ---
 
-## In-App Testing & Verification
+## Features
 
-1. **MongoDB Atlas Status:** Click the **Atlas: cognipath_ai** badge in the top navigation bar to open the live diagnostic modal.
-2. **Security & Prerequisite Cycle Suite:** Navigate to **Admin Governance Console ➔ Security Test Suite** and click "Run Security Test Suite" to execute all 8 automated assertions.
-3. **Official Docs Verification Benchmark:** Open any resource, click **Verification Audit ➔ Quality Benchmark Suite**, and run the 5-scenario evaluation suite.
+1. **Interactive Learning Roadmap:** Inspired by roadmap.sh, featuring connected milestone spines, prerequisite dependencies, and an inline topic inspector.
+2. **Syllabus Parsing & Review:** Drag-and-drop syllabus ingest with Gemini 2.5 curriculum extraction and editable review.
+3. **Verified Resource Directory:** Curated external resources with multi-factor explainable recommendation rankings.
+4. **Official Documentation Verification:** Compares claims against canonical Node.js and WHATWG specifications with prompt-injection and SSRF protections.
+5. **Real-Time AI Tutor:** Streaming doubt assistant grounded in the active topic context.
+6. **Diagnostics & Practice:** Internal assessments scored authoritatively on the backend, with factual subtopic weak-topic analysis.
+7. **Persistent Light/Dark Mode:** Apple-inspired themes persisting across browser reloads.
