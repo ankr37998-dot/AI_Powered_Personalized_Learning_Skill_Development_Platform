@@ -1,5 +1,5 @@
-import React from 'react';
-import { CatalogTopic, RoadmapNode, LearningResource, UserProfile } from '../types';
+import React, { useMemo } from 'react';
+import { CatalogTopic, RoadmapNode, LearningResource, UserProfile, CheckpointStudyMaterials } from '../types';
 import { resourceService } from '../services/resourceService';
 import {
   X,
@@ -14,7 +14,9 @@ import {
   ShieldCheck,
   Building,
   Video,
-  FileText
+  FileText,
+  Star,
+  Bookmark
 } from 'lucide-react';
 
 interface TopicDetailsModalProps {
@@ -46,42 +48,43 @@ export const TopicDetailsModal: React.FC<TopicDetailsModalProps> = ({
     (pid) => catalog.find((c) => c.id === pid) || { id: pid, title: pid }
   );
 
-  // Retrieve top recommended resources for this specific topic using baseline engine
-  const topicResources = resources.filter((r) => r.topicId === topic.id);
-  const topRecommended = resourceService
-    .rankResourcesForStudent(topicResources, userProfile, topic.id)
-    .slice(0, 2);
-
-  const getResourceIcon = (type: string) => {
-    switch (type) {
-      case 'video':
-        return <Video className="w-3.5 h-3.5 text-rose-400" />;
-      case 'documentation':
-        return <BookOpen className="w-3.5 h-3.5 text-cyan-400" />;
-      default:
-        return <FileText className="w-3.5 h-3.5 text-amber-400" />;
-    }
-  };
+  // Compute categorized study materials for this topic
+  const studyMaterials: CheckpointStudyMaterials = useMemo(() => {
+    const mockNode: RoadmapNode = roadmapNode || {
+      topicId: topic.id,
+      title: topic.title,
+      unit: topic.category,
+      status: 'available',
+      order: 1,
+      prerequisitesMet: true,
+      learningObjective: topic.summary,
+      keyCompetencies: topic.keyCompetencies
+    };
+    return resourceService.findStudyMaterialsForCheckpoint(mockNode, userProfile);
+  }, [topic, roadmapNode, userProfile, resources]);
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl p-6 space-y-6">
+    <div className="fixed inset-0 z-50 bg-slate-950/60 dark:bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl max-w-2xl w-full max-h-[92vh] overflow-y-auto shadow-2xl p-4 sm:p-6 space-y-5 my-auto transition-colors">
         {/* Header */}
-        <div className="flex items-start justify-between border-b border-slate-800 pb-4">
-          <div>
-            <div className="flex items-center space-x-2 text-xs uppercase font-bold tracking-wider text-indigo-400">
-              <Layers className="w-4 h-4" />
-              <span>Catalog Competency Detail</span>
+        <div className="flex items-start justify-between border-b border-slate-200/80 dark:border-slate-800 pb-3.5">
+          <div className="min-w-0 pr-2">
+            <div className="flex items-center space-x-2 text-xs uppercase font-bold tracking-wider text-indigo-600 dark:text-indigo-400">
+              <Layers className="w-4 h-4 flex-shrink-0" />
+              <span>Checkpoint Learning Space</span>
               <span>•</span>
-              <span className="capitalize text-slate-400">{topic.difficulty} Level</span>
+              <span className="capitalize text-slate-500 dark:text-slate-400">{topic.difficulty} Level</span>
             </div>
-            <h2 className="text-xl font-bold text-white mt-1">{topic.title}</h2>
-            <p className="text-xs text-slate-400 mt-1">{topic.summary}</p>
+            <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white mt-1 leading-snug">
+              {topic.title}
+            </h2>
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{topic.summary}</p>
           </div>
 
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 transition"
+            className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition flex-shrink-0"
+            aria-label="Close dialog"
           >
             <X className="w-5 h-5" />
           </button>
@@ -89,157 +92,166 @@ export const TopicDetailsModal: React.FC<TopicDetailsModalProps> = ({
 
         {/* Current Student Mastery Status */}
         {roadmapNode && (
-          <div className="bg-slate-800/80 p-3.5 rounded-xl border border-slate-700 flex items-center justify-between text-xs">
+          <div className="bg-slate-50 dark:bg-slate-800/80 p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-between text-xs">
             <div>
-              <span className="text-slate-400">Roadmap Progress:</span>
-              <span className="ml-2 font-bold text-white uppercase">{roadmapNode.status.replace(/_/g, ' ')}</span>
+              <span className="text-slate-500 dark:text-slate-400">Roadmap Progress:</span>
+              <span className="ml-2 font-bold text-slate-900 dark:text-white uppercase">
+                {roadmapNode.status.replace(/_/g, ' ')}
+              </span>
             </div>
             {typeof roadmapNode.score === 'number' && (
-              <span className="bg-slate-900 px-2.5 py-1 rounded text-cyan-300 font-mono border border-slate-700">
+              <span className="bg-white dark:bg-slate-900 px-2.5 py-1 rounded text-indigo-600 dark:text-cyan-300 font-mono font-medium border border-slate-200 dark:border-slate-700">
                 Latest Quiz: {roadmapNode.score}%
               </span>
             )}
           </div>
         )}
 
-        {/* Top Recommended Learning Resources */}
-        <div className="space-y-2.5">
+        {/* SECTION: STUDY MATERIALS FOR THIS CHECKPOINT */}
+        <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="text-xs uppercase font-bold text-indigo-300 flex items-center space-x-1.5">
-              <ShieldCheck className="w-3.5 h-3.5 text-indigo-400" />
-              <span>Top Recommended Learning Material</span>
+            <h3 className="text-xs uppercase font-bold text-indigo-600 dark:text-indigo-300 flex items-center space-x-1.5">
+              <BookOpen className="w-3.5 h-3.5 text-indigo-500" />
+              <span>Recommended Study Materials ({studyMaterials.totalCount})</span>
             </h3>
             <button
               onClick={() => {
                 onClose();
                 onExploreResources(topic.id);
               }}
-              className="text-[11px] text-cyan-400 hover:underline font-semibold"
+              className="text-[11px] text-indigo-600 dark:text-cyan-400 hover:underline font-semibold"
             >
-              View all ({topicResources.length})
+              Browse in Catalog
             </button>
           </div>
 
-          {topRecommended.length === 0 ? (
-            <div className="p-3 rounded-lg bg-slate-800/50 border border-slate-700 text-xs text-slate-400">
-              No resources mapped to this topic yet.
+          {studyMaterials.totalCount === 0 ? (
+            <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 text-xs text-slate-500 space-y-1">
+              <p>No external catalog materials currently mapped for this topic.</p>
+              <p className="text-indigo-600 dark:text-indigo-400 font-medium text-[11px]">
+                Tip: Click "Ask AI Tutor" below to ask questions or review code implementations in real time.
+              </p>
             </div>
           ) : (
-            <div className="space-y-2">
-              {topRecommended.map((res) => (
-                <div
-                  key={res.id}
-                  className="bg-slate-800/90 border border-slate-700/80 rounded-xl p-3 flex items-start justify-between gap-3 text-xs"
-                >
-                  <div className="space-y-1 flex-1">
-                    <div className="flex items-center space-x-2">
-                      <div className="p-1 rounded bg-slate-900">{getResourceIcon(res.type)}</div>
-                      <span className="font-bold text-white">{res.title}</span>
-                      {res.isOfficialSource && (
-                        <span className="text-[10px] bg-cyan-950 text-cyan-300 px-1.5 rounded border border-cyan-800 font-semibold">
-                          Official
-                        </span>
-                      )}
-                    </div>
-
-                    {res.recommendationReasons && res.recommendationReasons.length > 0 && (
-                      <div className="text-[11px] text-indigo-300/90 pl-6">
-                        • {res.recommendationReasons[0]}
-                      </div>
-                    )}
+            <div className="space-y-2.5">
+              {/* Start Here Card */}
+              {studyMaterials.startHere && (
+                <div className="p-3.5 rounded-xl bg-indigo-50/60 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800/60 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-600 text-white">
+                      <Star className="w-3 h-3 mr-1 fill-white" />
+                      Start Here
+                    </span>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 capitalize">
+                      {studyMaterials.startHere.difficulty} · {studyMaterials.startHere.durationOrReadTime}
+                    </span>
                   </div>
 
-                  <a
-                    href={res.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-700 text-slate-200 border border-slate-700 transition flex items-center"
-                  >
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </a>
+                  <h4 className="font-bold text-slate-900 dark:text-white text-xs">
+                    {studyMaterials.startHere.title}
+                  </h4>
+                  {studyMaterials.startHere.description && (
+                    <p className="text-[11px] text-slate-600 dark:text-slate-400 line-clamp-2">
+                      {studyMaterials.startHere.description}
+                    </p>
+                  )}
+
+                  <div className="flex items-center justify-between pt-1">
+                    <span className="text-[10px] text-indigo-600 dark:text-indigo-400 font-medium">
+                      {studyMaterials.startHere.recommendationReasons?.[0] || 'Recommended starting resource'}
+                    </span>
+                    <a
+                      href={studyMaterials.startHere.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold flex items-center space-x-1"
+                    >
+                      <span>Open</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
                 </div>
-              ))}
+              )}
+
+              {/* Supporting Resources List */}
+              <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                {[
+                  ...studyMaterials.officialDocumentation,
+                  ...studyMaterials.videoTutorials,
+                  ...studyMaterials.articlesAndGuides,
+                  ...studyMaterials.practice
+                ]
+                  .filter((r) => r.id !== studyMaterials.startHere?.id)
+                  .map((res) => (
+                    <div
+                      key={res.id}
+                      className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/80 flex items-center justify-between text-xs"
+                    >
+                      <div className="min-w-0 flex-1 pr-2">
+                        <div className="flex items-center space-x-1.5 text-[10px] text-slate-500 dark:text-slate-400">
+                          <span className="font-semibold text-slate-700 dark:text-slate-300">
+                            {res.platform}
+                          </span>
+                          {res.isOfficialSource && (
+                            <span className="text-[9px] bg-cyan-50 dark:bg-cyan-950 text-cyan-600 dark:text-cyan-300 px-1 rounded font-semibold">
+                              Official
+                            </span>
+                          )}
+                        </div>
+                        <div className="font-medium text-slate-900 dark:text-white truncate mt-0.5">
+                          {res.title}
+                        </div>
+                      </div>
+
+                      <a
+                        href={res.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="p-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:text-indigo-600 rounded-md transition flex-shrink-0"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </a>
+                    </div>
+                  ))}
+              </div>
             </div>
           )}
         </div>
 
-        {/* Key Competencies to Master */}
+        {/* Expected Competencies */}
         <div className="space-y-2">
-          <h3 className="text-xs uppercase font-bold text-slate-300">Expected Technical Competencies</h3>
+          <h3 className="text-xs uppercase font-bold text-slate-700 dark:text-slate-300">
+            Expected Technical Competencies
+          </h3>
           <div className="space-y-1.5">
             {topic.keyCompetencies && topic.keyCompetencies.length > 0 ? (
               topic.keyCompetencies.map((comp, idx) => (
                 <div
                   key={idx}
-                  className="bg-slate-800/60 p-2.5 rounded-lg border border-slate-700/80 text-xs text-slate-200 flex items-start space-x-2"
+                  className="bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-lg border border-slate-200 dark:border-slate-700/80 text-xs text-slate-800 dark:text-slate-200 flex items-start space-x-2"
                 >
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
                   <span>{comp}</span>
                 </div>
               ))
             ) : (
-              <p className="text-xs text-slate-500">Curriculum competencies mapped to official standards.</p>
+              <p className="text-xs text-slate-400">Curriculum competencies mapped to official standards.</p>
             )}
           </div>
         </div>
 
-        {/* Prerequisite Chain */}
-        <div className="space-y-2">
-          <h3 className="text-xs uppercase font-bold text-slate-300">Prerequisite Dependencies</h3>
-          {prereqTopics.length === 0 ? (
-            <div className="p-3 rounded-lg bg-emerald-950/20 border border-emerald-500/30 text-xs text-emerald-300">
-              No prerequisites. This is a foundational topic accessible immediately.
-            </div>
-          ) : (
-            <div className="flex flex-wrap gap-2">
-              {prereqTopics.map((pt) => (
-                <span
-                  key={pt.id}
-                  className="bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700 text-xs text-slate-300 flex items-center space-x-1.5"
-                >
-                  <Lock className="w-3.5 h-3.5 text-indigo-400" />
-                  <span>{pt.title}</span>
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Authoritative Official Documentation Sources */}
-        <div className="space-y-2">
-          <h3 className="text-xs uppercase font-bold text-slate-300">Authoritative Official Standards</h3>
-          <div className="space-y-1.5">
-            {topic.officialDocSources.map((doc, idx) => (
-              <a
-                key={idx}
-                href={doc.url}
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center justify-between p-3 rounded-xl bg-slate-800/80 border border-slate-700 hover:border-slate-500 text-xs text-slate-200 transition group"
-              >
-                <div className="flex items-center space-x-2">
-                  <BookOpen className="w-4 h-4 text-cyan-400" />
-                  <span className="font-semibold group-hover:text-cyan-300">{doc.title}</span>
-                  <span className="text-slate-400">({doc.authorityName})</span>
-                </div>
-                <ExternalLink className="w-3.5 h-3.5 text-slate-500 group-hover:text-cyan-400" />
-              </a>
-            ))}
-          </div>
-        </div>
-
         {/* Action Buttons */}
-        <div className="pt-3 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2">
+        <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
           <div className="flex items-center space-x-2">
             <button
               onClick={() => {
                 onClose();
                 onOpenAssistant(topic.id);
               }}
-              className="px-3.5 py-2 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition"
+              className="flex-1 sm:flex-initial px-3.5 py-2.5 min-h-[44px] bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-600/20 dark:hover:bg-indigo-600/30 text-indigo-600 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/30 rounded-xl text-xs font-semibold flex items-center justify-center space-x-1.5 transition"
             >
-              <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
-              <span>Ask AI Doubt Solver</span>
+              <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
+              <span>Ask AI Doubt</span>
             </button>
 
             <button
@@ -247,9 +259,9 @@ export const TopicDetailsModal: React.FC<TopicDetailsModalProps> = ({
                 onClose();
                 onOpenAssessment(topic.id);
               }}
-              className="px-3.5 py-2 bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-300 border border-cyan-500/30 rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition"
+              className="flex-1 sm:flex-initial px-3.5 py-2.5 min-h-[44px] bg-cyan-50 hover:bg-cyan-100 dark:bg-cyan-600/20 dark:hover:bg-cyan-600/30 text-cyan-700 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-500/30 rounded-xl text-xs font-semibold flex items-center justify-center space-x-1.5 transition"
             >
-              <Award className="w-3.5 h-3.5 text-cyan-400" />
+              <Award className="w-3.5 h-3.5 text-cyan-500" />
               <span>Diagnostic Test</span>
             </button>
           </div>
@@ -259,7 +271,7 @@ export const TopicDetailsModal: React.FC<TopicDetailsModalProps> = ({
               onClose();
               onExploreResources(topic.id);
             }}
-            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition"
+            className="w-full sm:w-auto px-4 py-2.5 min-h-[44px] bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold flex items-center justify-center space-x-1.5 transition shadow-sm"
           >
             <span>Explore All Resources</span>
             <ArrowRight className="w-3.5 h-3.5" />
