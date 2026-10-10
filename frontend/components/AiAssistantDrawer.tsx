@@ -23,9 +23,7 @@ import {
   AlertCircle,
   Copy,
   Check,
-  Building,
-  Layers,
-  ArrowRight
+  Building
 } from 'lucide-react';
 
 interface AiAssistantDrawerProps {
@@ -43,15 +41,14 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
   onClose,
   onNavigateToTopic
 }) => {
-  // Messages log initialized with clean starter greeting
   const [messages, setMessages] = useState<ChatMessage[]>(() => {
     const starterGreeting: ChatMessage = {
       id: 'greeting_0',
       sender: 'assistant',
       text: activeResource
-        ? `Hello! I am your Vertex AI Learning Assistant for **${activeResource.title}** (${activeTopic?.title || 'Active Topic'}). What concepts, implementation details, or specification questions can I help you clarify?`
+        ? `Hello! I am your Vertex AI Learning Assistant for **${activeResource.title}** (${activeTopic?.title || 'Active Topic'}). What concepts, implementation details, or specification questions can I help clarify?`
         : activeTopic
-        ? `Hello! I am your Vertex AI Learning Assistant grounded in **${activeTopic.title}**. What concept, event loop phase, or systems architecture doubt would you like to explore?`
+        ? `Hello! I am your Vertex AI Learning Assistant grounded in **${activeTopic.title}**. What concept, event loop phase, or systems architecture question would you like to explore?`
         : `Hello! I am your real-time AI Learning Assistant. Select any topic or resource from your roadmap to start contextual doubt solving!`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       citations: activeTopic?.officialDocSources?.map((src, i) => ({
@@ -73,7 +70,6 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
   const abortControllerRef = useRef<AbortController | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
-  // Auto-scroll to latest message
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -82,7 +78,6 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
     scrollToBottom();
   }, [messages]);
 
-  // Context bundle
   const sessionContext: ChatSessionContext = {
     learningGoal: learningGoal || 'Master Production Node.js Architecture',
     activeTopic,
@@ -91,7 +86,6 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
     verificationReportSummary: activeResource?.verificationReport?.findings?.[0]
   };
 
-  // Pre-configured pedagogical starter suggestions
   const starterPrompts = [
     'Explain this concept simply.',
     'Give me a practical code example.',
@@ -115,7 +109,7 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
       {
         id: `greeting_${Date.now()}`,
         sender: 'assistant',
-        text: `Conversation cleared. I am grounded in **${activeTopic?.title || 'Backend Architecture'}**. What would you like to ask next?`,
+        text: `Conversation cleared. Grounded in **${activeTopic?.title || 'Backend Architecture'}**. What would you like to ask next?`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         citations: activeTopic?.officialDocSources?.map((s, i) => ({
           id: `clr_${i}`,
@@ -145,7 +139,6 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
       resourceContextId: activeResource?.id
     };
 
-    // Placeholder message for progressive streaming
     const streamingPlaceholder: ChatMessage = {
       id: assistantMsgId,
       sender: 'assistant',
@@ -171,9 +164,7 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
           onChunk: (accumulated) => {
             setMessages((prev) =>
               prev.map((m) =>
-                m.id === assistantMsgId
-                  ? { ...m, text: accumulated, isStreaming: true }
-                  : m
+                m.id === assistantMsgId ? { ...m, text: accumulated, isStreaming: true } : m
               )
             );
           },
@@ -245,21 +236,21 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
   };
 
   return (
-    <div className="fixed inset-y-0 right-0 z-50 w-full sm:w-[500px] bg-slate-900 border-l border-slate-800 shadow-2xl flex flex-col">
+    <div className="fixed inset-y-0 right-0 z-50 w-full sm:w-[500px] max-w-full bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col transition-colors">
       {/* Drawer Header */}
-      <div className="p-4 border-b border-slate-800 bg-slate-900/95 backdrop-blur flex items-center justify-between">
-        <div className="flex items-center space-x-2.5">
-          <div className="w-8 h-8 rounded-lg bg-indigo-600/30 border border-indigo-500/40 flex items-center justify-center">
-            <Sparkles className="w-4 h-4 text-indigo-400" />
+      <div className="p-3.5 sm:p-4 border-b border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur flex items-center justify-between flex-shrink-0">
+        <div className="flex items-center space-x-2.5 min-w-0 pr-2">
+          <div className="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-600/30 border border-indigo-200 dark:border-indigo-500/40 flex items-center justify-center flex-shrink-0">
+            <Sparkles className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
           </div>
-          <div>
+          <div className="min-w-0">
             <div className="flex items-center space-x-1.5">
-              <span className="text-sm font-bold text-white">AI Learning Assistant</span>
-              <span className="text-[10px] bg-indigo-500/20 text-indigo-300 font-semibold px-1.5 py-0.5 rounded border border-indigo-500/30">
-                Gemini 2.5 Real-Time
+              <span className="text-sm font-bold text-slate-900 dark:text-white truncate">AI Doubt Assistant</span>
+              <span className="text-[10px] bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-300 font-semibold px-1.5 py-0.5 rounded border border-indigo-200 dark:border-indigo-500/30 flex-shrink-0">
+                Gemini 2.5
               </span>
             </div>
-            <p className="text-xs text-slate-400 truncate max-w-[280px]">
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
               {activeResource
                 ? `Context: ${activeResource.title}`
                 : activeTopic
@@ -269,11 +260,12 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center space-x-1">
+        <div className="flex items-center space-x-1 flex-shrink-0">
           <button
             onClick={handleClearConversation}
             title="Clear current session"
-            className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition text-xs"
+            className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+            aria-label="Clear conversation"
           >
             <RotateCcw className="w-4 h-4" />
           </button>
@@ -282,7 +274,8 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
               handleStopGeneration();
               onClose();
             }}
-            className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition"
+            className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+            aria-label="Close assistant panel"
           >
             <X className="w-5 h-5" />
           </button>
@@ -290,17 +283,17 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
       </div>
 
       {/* Active Grounding Context Bar */}
-      <div className="bg-slate-950/70 border-b border-slate-800/80 px-4 py-2 flex items-center justify-between text-[11px]">
-        <div className="flex items-center space-x-1.5 truncate text-slate-300">
-          <Building className="w-3.5 h-3.5 text-cyan-400 flex-shrink-0" />
+      <div className="bg-slate-50 dark:bg-slate-950/70 border-b border-slate-200 dark:border-slate-800 px-4 py-2 flex items-center justify-between text-[11px] flex-shrink-0">
+        <div className="flex items-center space-x-1.5 truncate text-slate-600 dark:text-slate-300">
+          <Building className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400 flex-shrink-0" />
           <span className="text-slate-400">Grounding:</span>
-          <span className="font-semibold text-slate-200 truncate">
-            {activeTopic ? activeTopic.title : 'Node.js Core Specifications'}
+          <span className="font-semibold text-slate-800 dark:text-slate-200 truncate">
+            {activeTopic ? activeTopic.title : 'Node.js Specifications'}
           </span>
         </div>
 
         {activeTopic?.prerequisiteIds && activeTopic.prerequisiteIds.length > 0 && (
-          <span className="text-[10px] bg-slate-900 text-slate-400 px-2 py-0.5 rounded border border-slate-800 font-mono">
+          <span className="text-[10px] bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-800 font-mono flex-shrink-0">
             {activeTopic.prerequisiteIds.length} Prereqs
           </span>
         )}
@@ -308,33 +301,33 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
 
       {/* Error Alert Bar */}
       {errorMessage && (
-        <div className="bg-rose-950/40 border-b border-rose-500/40 p-2.5 px-4 text-xs text-rose-300 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <AlertCircle className="w-4 h-4 flex-shrink-0 text-rose-400" />
-            <span>{errorMessage}</span>
+        <div className="bg-rose-50 dark:bg-rose-950/40 border-b border-rose-200 dark:border-rose-500/40 p-2.5 px-4 text-xs text-rose-600 dark:text-rose-300 flex items-center justify-between flex-shrink-0">
+          <div className="flex items-center space-x-2 min-w-0 pr-2">
+            <AlertCircle className="w-4 h-4 flex-shrink-0 text-rose-500" />
+            <span className="truncate">{errorMessage}</span>
           </div>
           <button
             onClick={handleRetryLastQuery}
-            className="text-xs bg-rose-900/60 hover:bg-rose-900 text-rose-200 px-2 py-0.5 rounded font-semibold transition"
+            className="text-xs bg-rose-100 dark:bg-rose-900/60 hover:bg-rose-200 text-rose-800 dark:text-rose-200 px-2.5 py-1 rounded-lg font-semibold transition flex-shrink-0"
           >
             Retry
           </button>
         </div>
       )}
 
-      {/* Starter Suggestions (Shown when only greeting exists) */}
+      {/* Starter Suggestions */}
       {messages.length <= 1 && (
-        <div className="p-3 bg-slate-950/50 border-b border-slate-800/80 space-y-1.5">
-          <div className="text-[11px] text-slate-400 font-medium flex items-center space-x-1">
-            <HelpCircle className="w-3.5 h-3.5 text-indigo-400" />
-            <span>Suggested questions for this session:</span>
+        <div className="p-3 bg-slate-50/60 dark:bg-slate-950/50 border-b border-slate-200 dark:border-slate-800 space-y-1.5 flex-shrink-0">
+          <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium flex items-center space-x-1">
+            <HelpCircle className="w-3.5 h-3.5 text-indigo-500" />
+            <span>Suggested questions:</span>
           </div>
           <div className="flex flex-wrap gap-1.5">
             {starterPrompts.map((prompt, idx) => (
               <button
                 key={idx}
                 onClick={() => handleSendMessage(prompt)}
-                className="text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white px-2.5 py-1 rounded-lg border border-slate-700 transition text-left"
+                className="text-[11px] bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 transition text-left"
               >
                 {prompt}
               </button>
@@ -344,38 +337,37 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
       )}
 
       {/* Messages Scroll Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-3.5 sm:p-4 space-y-4 overscroll-contain">
         {messages.map((msg) => (
           <div
             key={msg.id}
             className={`flex items-start space-x-2.5 ${msg.sender === 'student' ? 'flex-row-reverse space-x-reverse' : ''}`}
           >
             <div
-              className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${
+              className={`w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0 ${
                 msg.sender === 'student'
                   ? 'bg-indigo-600 text-white'
-                  : 'bg-slate-800 text-indigo-400 border border-slate-700'
+                  : 'bg-slate-100 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 border border-slate-200 dark:border-slate-700'
               }`}
             >
               {msg.sender === 'student' ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
             </div>
 
             <div
-              className={`max-w-[85%] rounded-2xl p-3.5 text-xs leading-relaxed space-y-2.5 ${
+              className={`max-w-[85%] rounded-2xl p-3.5 text-xs leading-relaxed space-y-2.5 break-words ${
                 msg.sender === 'student'
                   ? 'bg-indigo-600 text-white rounded-tr-none'
-                  : 'bg-slate-800/90 text-slate-200 border border-slate-700 rounded-tl-none'
+                  : 'bg-slate-50 dark:bg-slate-800/90 text-slate-900 dark:text-slate-200 border border-slate-200/90 dark:border-slate-700 rounded-tl-none'
               }`}
             >
-              {/* Message Body */}
               <div className="whitespace-pre-wrap font-sans">
                 {msg.text ? (
                   msg.text
                 ) : msg.isStreaming ? (
-                  <span className="inline-flex items-center space-x-1 text-slate-400">
-                    <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-pulse" />
-                    <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-pulse delay-150" />
-                    <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-pulse delay-300" />
+                  <span className="inline-flex items-center space-x-1 text-slate-500 dark:text-slate-400">
+                    <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse" />
+                    <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse delay-150" />
+                    <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse delay-300" />
                     <span className="ml-1 text-[11px]">Formulating response from specifications...</span>
                   </span>
                 ) : null}
@@ -383,10 +375,10 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
 
               {/* Citations Grounding block */}
               {msg.citations && msg.citations.length > 0 && (
-                <div className="mt-2.5 pt-2.5 border-t border-slate-700 text-[11px] text-slate-400 space-y-1.5">
-                  <div className="flex items-center space-x-1.5 font-bold text-cyan-400">
+                <div className="mt-2.5 pt-2.5 border-t border-slate-200 dark:border-slate-700 text-[11px] text-slate-500 dark:text-slate-400 space-y-1.5">
+                  <div className="flex items-center space-x-1.5 font-bold text-cyan-600 dark:text-cyan-400">
                     <BookOpen className="w-3.5 h-3.5" />
-                    <span>Authoritative Grounding Citations:</span>
+                    <span>Official Grounding Citations:</span>
                   </div>
                   <div className="space-y-1">
                     {msg.citations.map((c, idx) => (
@@ -395,10 +387,10 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
                         href={c.url}
                         target="_blank"
                         rel="noreferrer"
-                        className="flex items-center justify-between p-1.5 rounded-lg bg-slate-900/80 hover:bg-slate-900 border border-slate-800 text-slate-300 hover:text-cyan-300 transition"
+                        className="flex items-center justify-between p-1.5 rounded-lg bg-white dark:bg-slate-900/80 hover:bg-slate-100 dark:hover:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:text-cyan-600 dark:hover:text-cyan-300 transition"
                       >
                         <span className="truncate pr-2">• {c.title}</span>
-                        <ExternalLink className="w-3 h-3 text-slate-500 flex-shrink-0" />
+                        <ExternalLink className="w-3 h-3 text-slate-400 flex-shrink-0" />
                       </a>
                     ))}
                   </div>
@@ -412,12 +404,13 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
                 {msg.sender === 'assistant' && msg.text && (
                   <button
                     onClick={() => handleCopyCodeOrText(msg.text, msg.id)}
-                    className="flex items-center space-x-1 text-slate-400 hover:text-white"
+                    className="flex items-center space-x-1 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white p-1"
+                    aria-label="Copy message text"
                   >
                     {copiedId === msg.id ? (
                       <>
-                        <Check className="w-3 h-3 text-emerald-400" />
-                        <span className="text-emerald-400">Copied</span>
+                        <Check className="w-3 h-3 text-emerald-500" />
+                        <span className="text-emerald-500 font-medium">Copied</span>
                       </>
                     ) : (
                       <>
@@ -435,14 +428,14 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
       </div>
 
       {/* Streaming Stop Control & Input Area */}
-      <div className="p-3 border-t border-slate-800 bg-slate-900/95 space-y-2">
+      <div className="p-3 sm:p-4 border-t border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 space-y-2 flex-shrink-0">
         {isStreaming && (
           <div className="flex items-center justify-center">
             <button
               onClick={handleStopGeneration}
-              className="text-xs bg-slate-800 hover:bg-slate-700 text-rose-300 border border-rose-500/40 px-3 py-1 rounded-full flex items-center space-x-1.5 shadow-sm transition"
+              className="text-xs bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-rose-600 dark:text-rose-300 border border-rose-300 dark:border-rose-500/40 px-3.5 py-1.5 rounded-full flex items-center space-x-1.5 shadow-sm transition min-h-[36px]"
             >
-              <Square className="w-3 h-3 text-rose-400 fill-rose-400" />
+              <Square className="w-3 h-3 text-rose-500 fill-rose-500" />
               <span>Stop Generating</span>
             </button>
           </div>
@@ -460,14 +453,15 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
             value={inputQuestion}
             onChange={(e) => setInputQuestion(e.target.value)}
             disabled={isStreaming}
-            placeholder={isStreaming ? 'Assistant is streaming answer...' : 'Ask a doubt, request code, or clarify a phase...'}
-            className="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500 disabled:opacity-50"
+            placeholder={isStreaming ? 'Formulating answer...' : 'Ask a doubt or request code...'}
+            className="flex-1 bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 disabled:opacity-50 min-h-[44px]"
           />
 
           <button
             type="submit"
             disabled={!inputQuestion.trim() || isStreaming}
-            className="p-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-xl transition shadow-md shadow-indigo-600/30"
+            className="p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-xl transition shadow-md shadow-indigo-600/30 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            aria-label="Send query"
           >
             {isStreaming ? (
               <RefreshCw className="w-4 h-4 animate-spin" />
@@ -478,7 +472,7 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
         </form>
 
         <p className="text-[10px] text-slate-500 text-center">
-          Grounds answers in official specifications; distinguishes general explanations from cited standards.
+          Grounded in authoritative specs; distinguishes official docs from general knowledge.
         </p>
       </div>
     </div>
