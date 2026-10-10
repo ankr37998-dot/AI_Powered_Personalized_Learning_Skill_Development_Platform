@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { UserProfile, UserRole } from '../types';
 import {
   BookOpen,
@@ -9,7 +9,9 @@ import {
   Sparkles,
   RefreshCw,
   Award,
-  Layers
+  Layers,
+  TrendingUp,
+  Database
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -21,6 +23,8 @@ interface NavbarProps {
   totalTopicsCount: number;
   onOpenDocs: () => void;
   onResetData: () => void;
+  onOpenProfile: () => void;
+  onOpenBackendStatus: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -31,7 +35,9 @@ export const Navbar: React.FC<NavbarProps> = ({
   completedTopicsCount,
   totalTopicsCount,
   onOpenDocs,
-  onResetData
+  onResetData,
+  onOpenProfile,
+  onOpenBackendStatus
 }) => {
   const percentComplete = totalTopicsCount > 0 ? Math.round((completedTopicsCount / totalTopicsCount) * 100) : 0;
 
@@ -48,7 +54,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               <div className="flex items-center space-x-2">
                 <span className="font-bold text-lg text-white tracking-tight">CogniPath</span>
                 <span className="text-xs bg-indigo-500/20 text-indigo-300 font-semibold px-2 py-0.5 rounded-full border border-indigo-500/30">
-                  Vertex AI Verified
+                  MERN + Vertex AI
                 </span>
               </div>
               <p className="text-xs text-slate-400">Autonomous Roadmap & Doc-Verification Platform</p>
@@ -114,6 +120,20 @@ export const Navbar: React.FC<NavbarProps> = ({
                     <span>Assessment & Diagnostics</span>
                   </span>
                 </button>
+
+                <button
+                  onClick={() => onTabChange('progress')}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                    activeTab === 'progress'
+                      ? 'bg-indigo-600/30 text-indigo-300 border border-indigo-500/40'
+                      : 'text-slate-300 hover:text-white hover:bg-slate-800'
+                  }`}
+                >
+                  <span className="flex items-center space-x-1.5">
+                    <TrendingUp className="w-4 h-4" />
+                    <span>Learning History</span>
+                  </span>
+                </button>
               </>
             ) : (
               <button
@@ -121,14 +141,34 @@ export const Navbar: React.FC<NavbarProps> = ({
                 className="px-3 py-1.5 rounded-lg text-sm font-medium bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center space-x-1.5"
               >
                 <ShieldCheck className="w-4 h-4" />
-                <span>Admin Catalog & Audit Control</span>
+                <span>Admin Governance Console</span>
               </button>
             )}
           </nav>
 
           {/* Right Action Bar */}
-          <div className="flex items-center space-x-3">
-            {/* Spec Docs button */}
+          <div className="flex items-center space-x-2.5">
+            {/* MongoDB Atlas Connectivity Indicator Button */}
+            <button
+              onClick={onOpenBackendStatus}
+              title="Inspect MongoDB Atlas Connection and Express REST API"
+              className="text-xs bg-emerald-950/60 hover:bg-emerald-900 border border-emerald-500/40 text-emerald-300 px-2.5 py-1.5 rounded-lg flex items-center space-x-1.5 transition shadow-sm"
+            >
+              <Database className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="hidden lg:inline font-mono">Atlas: cognipath_ai</span>
+            </button>
+
+            {userProfile.role === 'student' && (
+              <button
+                onClick={onOpenProfile}
+                title="Manage Learning Preferences & Goal"
+                className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white px-2.5 py-1.5 rounded-lg border border-slate-700 flex items-center space-x-1 transition"
+              >
+                <User className="w-3.5 h-3.5 text-indigo-400" />
+                <span className="hidden sm:inline">Profile</span>
+              </button>
+            )}
+
             <button
               onClick={onOpenDocs}
               title="View Architecture & Implementation Plan Docs"
@@ -138,7 +178,6 @@ export const Navbar: React.FC<NavbarProps> = ({
               <span className="hidden sm:inline">Spec Docs</span>
             </button>
 
-            {/* Role Switcher Pill */}
             <div className="bg-slate-800 p-1 rounded-xl border border-slate-700 flex items-center">
               <button
                 onClick={() => onRoleChange('student')}
@@ -162,7 +201,6 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
             </div>
 
-            {/* Reset Data Pill */}
             <button
               onClick={onResetData}
               title="Reset to Verified Sample Data"
@@ -173,7 +211,6 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
 
-        {/* Mini progress tracker bar */}
         {userProfile.role === 'student' && (
           <div className="pb-2 pt-1 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
             <div className="flex items-center space-x-2">
