@@ -1,15 +1,21 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CogniPath AI - Learning Platform</title>
+    <title>CogniPath AI — Autonomous Learning & Verification Platform</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
+        darkMode: 'class',
         theme: {
           extend: {
             colors: {
+              slate: {
+                850: '#151d2e',
+                925: '#0b1120',
+                950: '#070c18',
+              },
               brand: {
                 50: '#eef2ff',
                 100: '#e0e7ff',
@@ -20,13 +26,35 @@
                 800: '#3730a3',
                 900: '#312e81',
               }
+            },
+            fontFamily: {
+              sans: [
+                '-apple-system',
+                'BlinkMacSystemFont',
+                '"SF Pro Text"',
+                '"SF Pro Display"',
+                '"SF Pro"',
+                '"Segoe UI"',
+                'Roboto',
+                'Helvetica',
+                'Arial',
+                'sans-serif'
+              ],
+              mono: [
+                '"SF Mono"',
+                'ui-monospace',
+                'Menlo',
+                'Monaco',
+                'Consolas',
+                'monospace'
+              ]
             }
           }
         }
       }
     </script>
       </head>
-  <body class="bg-slate-900 text-slate-100 antialiased min-h-screen selection:bg-indigo-500 selection:text-white">
+  <body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 antialiased min-h-screen selection:bg-indigo-500 selection:text-white transition-colors duration-150">
     <div id="root"></div>
     <script type="module" src="./index.tsx"></script>
   <script type="module" src="/index.js"></script></body>
