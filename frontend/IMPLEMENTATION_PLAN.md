@@ -18,7 +18,7 @@
   - Built `ResourceList.tsx` with categorized cards (videos, documentation, articles), freshness dates, and quality scores.
 
 - [x] **Phase 5 — Official Documentation-Based Resource Verification**
-  - Built `geminiService.verifyResourceAgainstOfficialDocs` and `VerificationModal.tsx` showing claim-by-claim audits, official standard links, and evidence gaps.
+  - Built canonical reference library, SSRF-safe content access, Gemini 2.5 strict verification pipeline, claim comparison modal, and 5-scenario evaluation suite.
 
 - [x] **Phase 6 — Real-Time AI Learning Assistant**
   - Built `AiAssistantDrawer.tsx` powered by Gemini 2.5 Flash, grounded in active topic context with doubt suggestion chips and citation references.
@@ -26,5 +26,7 @@
 - [x] **Phase 7 — Assessments & Evidence-Based Weak-Subtopic Analysis**
   - Built `AssessmentQuiz.tsx` and `WeakTopicAnalysis.tsx` which calculates factual accuracy rates per tagged subtopic without guessing.
 
-- [x] **Phase 8 — Administrator Tools & Governance Console**
-  - Built `AdminDashboard.tsx` for adding catalog topics, editing prerequisites, and auditing resource registry status.
+- [x] **Phase 8 — Administrator Tools & Governance Console (Completed)**
+  - Built `adminService.ts` for role authorization, DFS cycle detection, last-admin safeguards, and topic dependency audits.
+  - Upgraded `AdminDashboard.tsx` with live database metrics, paginated user management, prerequisite graph manager, and issue resolution workflows.
+  - Built `adminTestRunner.ts` automated security test suite with 8 test cases.
