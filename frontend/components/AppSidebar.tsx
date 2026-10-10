@@ -1,13 +1,11 @@
 import React from 'react';
-import { UserProfile, UserRole } from '../types';
+import { UserProfile } from '../types';
 import {
-  Layers,
-  BookOpen,
+  Compass,
+  FileText,
   ShieldCheck,
   Award,
   TrendingUp,
-  User,
-  ShieldAlert,
   Cpu,
   ChevronLeft,
   ChevronRight,
@@ -41,44 +39,34 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
   onOpenBackendStatus,
   onOpenDocs
 }) => {
-  const isStudent = userProfile.role === 'student';
-
-  const navSections = isStudent
-    ? [
-        {
-          title: 'LEARN',
-          items: [
-            { id: 'roadmap', label: 'Learning Roadmap', icon: Layers, badge: 'Core' },
-            { id: 'syllabus', label: 'Syllabus Ingestion', icon: BookOpen }
-          ]
-        },
-        {
-          title: 'RESOURCES',
-          items: [
-            { id: 'resources', label: 'Verified Resources', icon: ShieldCheck }
-          ]
-        },
-        {
-          title: 'PRACTICE & DIAGNOSTICS',
-          items: [
-            { id: 'assessment', label: 'Assessment & Diagnostics', icon: Award }
-          ]
-        },
-        {
-          title: 'PROGRESS',
-          items: [
-            { id: 'progress', label: 'Learning History', icon: TrendingUp }
-          ]
-        }
+  // Pure Student Navigation Sections
+  const navSections = [
+    {
+      title: 'LEARNING PATH',
+      items: [
+        { id: 'roadmap', label: 'Interactive Roadmap', icon: Compass, badge: 'Main' },
+        { id: 'syllabus', label: 'Syllabus Ingestion', icon: FileText }
       ]
-    : [
-        {
-          title: 'GOVERNANCE',
-          items: [
-            { id: 'admin', label: 'Admin Console', icon: ShieldAlert, badge: 'Admin' }
-          ]
-        }
-      ];
+    },
+    {
+      title: 'CURATED KNOWLEDGE',
+      items: [
+        { id: 'resources', label: 'Verified Resources', icon: ShieldCheck }
+      ]
+    },
+    {
+      title: 'SKILL ASSESSMENT',
+      items: [
+        { id: 'assessment', label: 'Diagnostics & Practice', icon: Award }
+      ]
+    },
+    {
+      title: 'PROGRESSION',
+      items: [
+        { id: 'progress', label: 'Mastery & History', icon: TrendingUp }
+      ]
+    }
+  ];
 
   const handleNavClick = (tabId: string) => {
     onTabChange(tabId);
@@ -91,36 +79,42 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
       {isOpenMobile && (
         <div
           onClick={onCloseMobile}
-          className="fixed inset-0 z-40 bg-slate-950/80 backdrop-blur-sm lg:hidden transition-opacity"
+          className="fixed inset-0 z-40 bg-slate-950/60 dark:bg-slate-950/80 backdrop-blur-sm lg:hidden transition-opacity duration-200"
+          aria-hidden="true"
         />
       )}
 
-      {/* Sidebar Container */}
+      {/* Sidebar Shell */}
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-50 flex flex-col bg-slate-900 border-r border-slate-800 transition-all duration-300 ease-in-out lg:translate-x-0 ${
-          isOpenMobile ? 'translate-x-0 w-72' : '-translate-x-full lg:translate-x-0'
-        } ${isCollapsedDesktop ? 'lg:w-20' : 'lg:w-64'}`}
+        className={`fixed top-0 bottom-0 left-0 z-50 flex flex-col bg-white dark:bg-slate-925 border-r border-slate-200/90 dark:border-slate-800/80 transition-all duration-200 ease-out ${
+          isOpenMobile
+            ? 'translate-x-0 w-[280px] shadow-2xl'
+            : '-translate-x-full lg:translate-x-0'
+        } ${isCollapsedDesktop ? 'lg:w-[72px]' : 'lg:w-[260px]'}`}
+        aria-label="Student Navigation"
       >
         {/* Brand Header */}
-        <div className="h-16 flex items-center justify-between px-4 border-b border-slate-800/80">
+        <div className="h-14 flex items-center justify-between px-3.5 border-b border-slate-100 dark:border-slate-800/80 flex-shrink-0">
           <div
             onClick={() => handleNavClick('roadmap')}
-            className="flex items-center space-x-3 cursor-pointer group"
+            className="flex items-center space-x-2.5 cursor-pointer group min-w-0"
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => e.key === 'Enter' && handleNavClick('roadmap')}
           >
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-cyan-400 flex items-center justify-center shadow-md shadow-indigo-500/20 flex-shrink-0">
-              <Cpu className="w-5 h-5 text-white" />
+            <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center shadow-sm shadow-indigo-600/30 flex-shrink-0">
+              <Cpu className="w-4 h-4 text-white" />
             </div>
             {(!isCollapsedDesktop || isOpenMobile) && (
-              <div className="overflow-hidden">
-                <div className="flex items-center space-x-1.5">
-                  <span className="font-bold text-base text-white tracking-tight group-hover:text-indigo-300 transition-colors">
-                    CogniPath
-                  </span>
-                  <span className="text-[10px] bg-indigo-500/20 text-indigo-300 font-semibold px-1.5 py-0.2 rounded border border-indigo-500/30">
-                    AI
+              <div className="overflow-hidden min-w-0">
+                <div className="flex items-center space-x-1.5 truncate">
+                  <span className="font-semibold text-sm text-slate-900 dark:text-white tracking-tight group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors truncate">
+                    CogniPath AI
                   </span>
                 </div>
-                <p className="text-[10px] text-slate-400 truncate">Roadmap & Verification</p>
+                <p className="text-[10px] text-slate-400 dark:text-slate-500 truncate -mt-0.5">
+                  Student Learning Workspace
+                </p>
               </div>
             )}
           </div>
@@ -128,32 +122,33 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
           {/* Mobile Close Button */}
           <button
             onClick={onCloseMobile}
-            className="p-1 text-slate-400 hover:text-white rounded-lg lg:hidden"
-            aria-label="Close menu"
+            className="p-1.5 text-slate-400 hover:text-slate-800 dark:hover:text-white rounded-lg lg:hidden"
+            aria-label="Close navigation"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
 
-          {/* Desktop Collapse Button */}
+          {/* Desktop Collapse Toggle */}
           <button
             onClick={onToggleCollapseDesktop}
-            className="hidden lg:flex p-1 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition"
+            className="hidden lg:flex p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/60 rounded-md transition"
             title={isCollapsedDesktop ? 'Expand sidebar' : 'Collapse sidebar'}
+            aria-label={isCollapsedDesktop ? 'Expand sidebar' : 'Collapse sidebar'}
           >
             {isCollapsedDesktop ? (
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-3.5 h-3.5" />
             ) : (
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="w-3.5 h-3.5" />
             )}
           </button>
         </div>
 
-        {/* Navigation Group Items */}
-        <div className="flex-1 overflow-y-auto py-4 px-3 space-y-6">
+        {/* Navigation Section List */}
+        <div className="flex-1 overflow-y-auto py-3 px-2.5 space-y-4 overscroll-contain">
           {navSections.map((section, idx) => (
-            <div key={idx} className="space-y-1">
+            <div key={idx} className="space-y-0.5">
               {(!isCollapsedDesktop || isOpenMobile) && (
-                <div className="px-3 text-[10px] font-bold tracking-wider text-slate-400 uppercase mb-1.5">
+                <div className="px-2.5 text-[10px] font-semibold tracking-wider text-slate-400 dark:text-slate-500 uppercase mb-1">
                   {section.title}
                 </div>
               )}
@@ -165,27 +160,27 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
                   <button
                     key={item.id}
                     onClick={() => handleNavClick(item.id)}
-                    className={`w-full flex items-center rounded-xl font-medium text-xs transition-all ${
+                    className={`w-full flex items-center rounded-lg text-xs font-medium transition-colors ${
                       isCollapsedDesktop && !isOpenMobile
-                        ? 'justify-center p-3'
-                        : 'space-x-3 px-3 py-2.5'
+                        ? 'justify-center p-2.5'
+                        : 'space-x-2.5 px-2.5 py-2'
                     } ${
                       isActive
-                        ? 'bg-indigo-600/15 text-indigo-300 font-semibold border border-indigo-500/30 shadow-sm'
-                        : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/60'
+                        ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-semibold'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/70 dark:hover:bg-slate-850/60'
                     }`}
                     title={isCollapsedDesktop ? item.label : undefined}
                   >
                     <Icon
                       className={`w-4 h-4 flex-shrink-0 ${
-                        isActive ? 'text-indigo-400' : 'text-slate-400'
+                        isActive ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 dark:text-slate-400'
                       }`}
                     />
                     {(!isCollapsedDesktop || isOpenMobile) && (
                       <span className="flex-1 text-left truncate">{item.label}</span>
                     )}
                     {(!isCollapsedDesktop || isOpenMobile) && item.badge && (
-                      <span className="text-[10px] px-1.5 py-0.2 rounded-full font-bold bg-slate-800 text-slate-400 border border-slate-700">
+                      <span className="text-[9px] px-1.5 py-0.2 rounded font-semibold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
                         {item.badge}
                       </span>
                     )}
@@ -195,60 +190,74 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
             </div>
           ))}
 
-          {/* Quick Tools & Inspect Modals */}
-          <div className="pt-2 border-t border-slate-800/80 space-y-1">
+          {/* System Status and Architecture Reference */}
+          <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80 space-y-0.5">
             {(!isCollapsedDesktop || isOpenMobile) && (
-              <div className="px-3 text-[10px] font-bold tracking-wider text-slate-400 uppercase mb-1.5">
-                SYSTEM & TOOLS
+              <div className="px-2.5 text-[10px] font-semibold tracking-wider text-slate-400 dark:text-slate-500 uppercase mb-1">
+                SYSTEM & REFS
               </div>
             )}
 
             <button
-              onClick={onOpenBackendStatus}
-              className={`w-full flex items-center rounded-xl text-xs text-slate-400 hover:text-emerald-300 hover:bg-slate-800/60 transition ${
+              onClick={() => {
+                onOpenBackendStatus();
+                onCloseMobile();
+              }}
+              className={`w-full flex items-center rounded-lg text-xs text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-100/70 dark:hover:bg-slate-850/60 transition ${
                 isCollapsedDesktop && !isOpenMobile
-                  ? 'justify-center p-3'
-                  : 'space-x-3 px-3 py-2'
+                  ? 'justify-center p-2.5'
+                  : 'space-x-2.5 px-2.5 py-1.5'
               }`}
-              title="Database & REST Status"
+              title="MongoDB Atlas Status"
             >
-              <Database className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+              <Database className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
               {(!isCollapsedDesktop || isOpenMobile) && (
                 <span className="truncate">Atlas: cognipath_ai</span>
               )}
             </button>
 
             <button
-              onClick={onOpenDocs}
-              className={`w-full flex items-center rounded-xl text-xs text-slate-400 hover:text-cyan-300 hover:bg-slate-800/60 transition ${
+              onClick={() => {
+                onOpenDocs();
+                onCloseMobile();
+              }}
+              className={`w-full flex items-center rounded-lg text-xs text-slate-500 dark:text-slate-400 hover:text-cyan-600 dark:hover:text-cyan-400 hover:bg-slate-100/70 dark:hover:bg-slate-850/60 transition ${
                 isCollapsedDesktop && !isOpenMobile
-                  ? 'justify-center p-3'
-                  : 'space-x-3 px-3 py-2'
+                  ? 'justify-center p-2.5'
+                  : 'space-x-2.5 px-2.5 py-1.5'
               }`}
               title="Architecture Docs"
             >
-              <FileCode2 className="w-4 h-4 text-cyan-400 flex-shrink-0" />
+              <FileCode2 className="w-3.5 h-3.5 text-cyan-500 flex-shrink-0" />
               {(!isCollapsedDesktop || isOpenMobile) && <span>Architecture Specs</span>}
             </button>
           </div>
         </div>
 
-        {/* Bottom User Profile Section */}
-        <div className="p-3 border-t border-slate-800/80 bg-slate-900/50">
+        {/* Bottom Student Profile */}
+        <div className="p-2 border-t border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-950/40 flex-shrink-0">
           <div
-            onClick={onOpenProfile}
-            className={`flex items-center rounded-xl p-2 cursor-pointer hover:bg-slate-800 transition ${
-              isCollapsedDesktop && !isOpenMobile ? 'justify-center' : 'space-x-2.5'
+            onClick={() => {
+              onOpenProfile();
+              onCloseMobile();
+            }}
+            className={`flex items-center rounded-lg p-1.5 cursor-pointer hover:bg-slate-200/50 dark:hover:bg-slate-800 transition ${
+              isCollapsedDesktop && !isOpenMobile ? 'justify-center' : 'space-x-2'
             }`}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => e.key === 'Enter' && onOpenProfile()}
           >
-            <div className="w-8 h-8 rounded-lg bg-indigo-600/30 border border-indigo-500/40 flex items-center justify-center flex-shrink-0 text-indigo-300 font-bold text-xs">
+            <div className="w-7 h-7 rounded-md bg-indigo-600/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center flex-shrink-0 font-semibold text-xs">
               {userProfile.name.charAt(0).toUpperCase()}
             </div>
             {(!isCollapsedDesktop || isOpenMobile) && (
-              <div className="flex-1 overflow-hidden">
-                <div className="text-xs font-bold text-white truncate">{userProfile.name}</div>
+              <div className="flex-1 overflow-hidden min-w-0">
+                <div className="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate">
+                  {userProfile.name}
+                </div>
                 <div className="text-[10px] text-slate-400 truncate capitalize">
-                  {userProfile.role} • {userProfile.currentSkillLevel}
+                  Student · {userProfile.currentSkillLevel}
                 </div>
               </div>
             )}
