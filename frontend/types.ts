@@ -1,4 +1,4 @@
-export type UserRole = 'student' | 'admin';
+export type UserRole = 'student';
 
 export interface UserProfile {
   id: string;
@@ -10,6 +10,26 @@ export interface UserProfile {
   preferredLanguage: string;
   registeredDate: string;
   status: 'active' | 'suspended';
+}
+
+export interface AuthSession {
+  token: string;
+  user: UserProfile;
+  expiresAt: number;
+}
+
+export interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+export interface RegisterPayload {
+  name: string;
+  email: string;
+  password: string;
+  targetGoal?: string;
+  currentSkillLevel?: 'beginner' | 'intermediate' | 'advanced';
+  preferredLanguage?: string;
 }
 
 export interface ExtractedTopic {
@@ -71,11 +91,54 @@ export interface RoadmapNode {
   topicId: string;
   title: string;
   unit: string;
+  phaseId?: string;
   status: TopicStatus;
   order: number;
   prerequisitesMet: boolean;
   score?: number;
   lastStudiedAt?: string;
+  estimatedHours?: number;
+  learningObjective?: string;
+  keyCompetencies?: string[];
+}
+
+export interface RoadmapPhase {
+  id: string;
+  title: string;
+  description: string;
+  order: number;
+  estimatedWeeks?: number;
+  milestoneProject?: string;
+  topicIds: string[];
+}
+
+export type GoalCategory = 'skill' | 'career' | 'syllabus' | 'custom';
+
+export interface CreateRoadmapPayload {
+  category: GoalCategory;
+  goalTitle: string;
+  goalDescription: string;
+  skillLevel: 'beginner' | 'intermediate' | 'advanced';
+  priorKnowledge?: string;
+  weeklyHours: number;
+  targetFocus: 'comprehensive' | 'project_oriented' | 'interview_prep' | 'exam_prep';
+  syllabusContent?: string;
+}
+
+export interface SavedRoadmap {
+  id: string;
+  studentId: string;
+  title: string;
+  category: GoalCategory;
+  description: string;
+  targetFocus: string;
+  skillLevel: 'beginner' | 'intermediate' | 'advanced';
+  weeklyHours: number;
+  totalEstimatedHours: number;
+  createdAt: string;
+  updatedAt: string;
+  phases: RoadmapPhase[];
+  nodes: RoadmapNode[];
 }
 
 export type ResourceType = 'video' | 'documentation' | 'article' | 'mcq' | 'practice';
@@ -165,6 +228,17 @@ export interface LearningResource {
   recommendationScore?: number;
   recommendationReasons?: string[];
   isInternalAssessment?: boolean;
+  isBookmarked?: boolean;
+}
+
+export interface CheckpointStudyMaterials {
+  startHere?: LearningResource;
+  officialDocumentation: LearningResource[];
+  videoTutorials: LearningResource[];
+  articlesAndGuides: LearningResource[];
+  practice: LearningResource[];
+  furtherLearning: LearningResource[];
+  totalCount: number;
 }
 
 export interface ReportedResourceIssue {
@@ -299,46 +373,6 @@ export interface PlatformConfig {
   allowManualAssessmentOverride: boolean;
   maxDailyDoubtQueriesPerStudent: number;
   maintenanceMode: boolean;
-}
-
-export interface AdminMetrics {
-  totalUsers: number;
-  activeUsers: number;
-  suspendedUsers: number;
-  adminUsers: number;
-  totalTopics: number;
-  activeTopics: number;
-  totalResources: number;
-  availableResources: number;
-  unavailableResources: number;
-  archivedResources: number;
-  pendingReportsCount: number;
-  resolvedReportsCount: number;
-  verifiedResourcesCount: number;
-  potentialMismatchesCount: number;
-}
-
-export interface PrerequisiteCycleCheckResult {
-  hasCycle: boolean;
-  cyclePath?: string[];
-  error?: string;
-}
-
-export interface TopicDependencyAudit {
-  canDelete: boolean;
-  dependentTopics: string[];
-  mappedResources: string[];
-  blockingReason?: string;
-}
-
-export interface AdminSecurityTestResult {
-  id: string;
-  title: string;
-  category: 'authorization' | 'user_management' | 'prerequisite_graph' | 'topic_safety' | 'resource_integrity';
-  expected: string;
-  actual: string;
-  passed: boolean;
-  details: string;
 }
 
 export interface BackendHealthState {
