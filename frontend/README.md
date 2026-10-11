@@ -1,58 +1,18 @@
-# CogniPath AI — Student Learning & Resource Verification Platform
+# CogniPath Frontend
 
-CogniPath AI is a personalized learning platform designed entirely for students. It emphasizes strict prerequisite sequencing, interactive learning roadmaps, and official-documentation verification over unvalidated content generation.
+React and TypeScript interface for CogniPath. User accounts and assessment attempts are handled by the Express/Mongoose API in the sibling `backend` workspace.
 
----
+## Development
 
-## Tech Stack & Architecture
+From the repository root, configure `backend/.env` using `backend/.env.example`, install dependencies, then run:
 
-- **Frontend:** React 19, TypeScript, Tailwind CSS, Lucide React icons.
-- **Backend:** Node.js, Express.js REST API with Helmet security headers, CORS, and rate limiting.
-- **Database:** MongoDB Atlas (Mongoose ODM) configured to `cognipath_ai`.
-- **AI Engine:** Google Cloud Vertex AI / Gemini 2.5 Flash SDK (`@google/genai`).
-- **Product Model:** Student-Only Application.
-
----
-
-## Local Development Setup
-
-### 1. Install Dependencies
-```bash
+```sh
 npm install
-```
-
-### 2. Configure Environment Variables
-Copy the template and configure your local credentials:
-```bash
-cp .env.example .env
-```
-Ensure `.env` contains:
-```env
-PORT=5000
-MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.nmemp4s.mongodb.net/cognipath_ai?retryWrites=true&w=majority
-API_KEY=your_gemini_api_key
-```
-
-### 3. Start Backend Server
-```bash
-node server/server.js
-```
-The server will connect to MongoDB Atlas and listen on `http://localhost:5000`.
-
-### 4. Start Frontend
-```bash
 npm run dev
-# or open index.html in a live browser server
 ```
 
----
+The Vite client uses `http://localhost:5000` for API requests. The frontend does not need database credentials.
 
-## Features
+## Learning tools
 
-1. **Interactive Learning Roadmap:** Inspired by roadmap.sh, featuring connected milestone spines, prerequisite dependencies, and an inline topic inspector.
-2. **Syllabus Parsing & Review:** Drag-and-drop syllabus ingest with Gemini 2.5 curriculum extraction and editable review.
-3. **Verified Resource Directory:** Curated external resources with multi-factor explainable recommendation rankings.
-4. **Official Documentation Verification:** Compares claims against canonical Node.js and WHATWG specifications with prompt-injection and SSRF protections.
-5. **Real-Time AI Tutor:** Streaming doubt assistant grounded in the active topic context.
-6. **Diagnostics & Practice:** Internal assessments scored authoritatively on the backend, with factual subtopic weak-topic analysis.
-7. **Persistent Light/Dark Mode:** Apple-inspired themes persisting across browser reloads.
+Uploaded syllabus extraction, personalized roadmap generation, streaming AI tutoring, and resource verification call the backend's Gemini Developer API proxy. Manual topic entry stays local. Google Gemini credentials are configured only in the ignored `backend/.env` file and are never needed by the frontend.

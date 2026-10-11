@@ -1,4 +1,4 @@
-export type UserRole = 'student';
+export type UserRole = "student" | "admin";
 
 export interface UserProfile {
   id: string;
@@ -6,10 +6,10 @@ export interface UserProfile {
   email: string;
   role: UserRole;
   targetGoal: string;
-  currentSkillLevel: 'beginner' | 'intermediate' | 'advanced';
+  currentSkillLevel: "beginner" | "intermediate" | "advanced";
   preferredLanguage: string;
   registeredDate: string;
-  status: 'active' | 'suspended';
+  status: "active" | "suspended";
 }
 
 export interface AuthSession {
@@ -28,7 +28,7 @@ export interface RegisterPayload {
   email: string;
   password: string;
   targetGoal?: string;
-  currentSkillLevel?: 'beginner' | 'intermediate' | 'advanced';
+  currentSkillLevel?: "beginner" | "intermediate" | "advanced";
   preferredLanguage?: string;
 }
 
@@ -37,7 +37,7 @@ export interface ExtractedTopic {
   title: string;
   unitOrModule: string;
   description: string;
-  confidence: 'high' | 'medium' | 'uncertain';
+  confidence: "high" | "medium" | "uncertain";
   mappedCatalogId?: string;
   prerequisites: string[]; // topic IDs
   order: number;
@@ -60,7 +60,7 @@ export interface SyllabusDraft {
   id: string;
   savedAt: string;
   learningGoal: string;
-  sourceType: 'file' | 'manual';
+  sourceType: "file" | "manual";
   fileName?: string;
   rawText?: string;
   groups: SubjectUnitGroup[];
@@ -71,7 +71,7 @@ export interface CatalogTopic {
   slug?: string;
   title: string;
   category: string;
-  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  difficulty: "beginner" | "intermediate" | "advanced";
   summary: string;
   prerequisiteIds: string[];
   keyCompetencies: string[];
@@ -85,7 +85,12 @@ export interface CatalogTopic {
   }[];
 }
 
-export type TopicStatus = 'locked' | 'available' | 'in_progress' | 'completed' | 'needs_revision';
+export type TopicStatus =
+  | "locked"
+  | "available"
+  | "in_progress"
+  | "completed"
+  | "needs_revision";
 
 export interface RoadmapNode {
   topicId: string;
@@ -112,16 +117,20 @@ export interface RoadmapPhase {
   topicIds: string[];
 }
 
-export type GoalCategory = 'skill' | 'career' | 'syllabus' | 'custom';
+export type GoalCategory = "skill" | "career" | "syllabus" | "custom";
 
 export interface CreateRoadmapPayload {
   category: GoalCategory;
   goalTitle: string;
   goalDescription: string;
-  skillLevel: 'beginner' | 'intermediate' | 'advanced';
+  skillLevel: "beginner" | "intermediate" | "advanced";
   priorKnowledge?: string;
   weeklyHours: number;
-  targetFocus: 'comprehensive' | 'project_oriented' | 'interview_prep' | 'exam_prep';
+  targetFocus:
+    | "comprehensive"
+    | "project_oriented"
+    | "interview_prep"
+    | "exam_prep";
   syllabusContent?: string;
 }
 
@@ -132,7 +141,7 @@ export interface SavedRoadmap {
   category: GoalCategory;
   description: string;
   targetFocus: string;
-  skillLevel: 'beginner' | 'intermediate' | 'advanced';
+  skillLevel: "beginner" | "intermediate" | "advanced";
   weeklyHours: number;
   totalEstimatedHours: number;
   createdAt: string;
@@ -141,24 +150,33 @@ export interface SavedRoadmap {
   nodes: RoadmapNode[];
 }
 
-export type ResourceType = 'video' | 'documentation' | 'article' | 'mcq' | 'practice';
+export type ResourceType =
+  | "video"
+  | "documentation"
+  | "article"
+  | "mcq"
+  | "practice";
 
-export type ResourceAvailability = 'available' | 'unavailable' | 'unknown' | 'archived';
+export type ResourceAvailability =
+  | "available"
+  | "unavailable"
+  | "unknown"
+  | "archived";
 
 export type VerificationStatus =
-  | 'verified_against_cited_references'
-  | 'potential_mismatch'
-  | 'unable_to_verify'
-  | 'verification_failed';
+  | "verified_against_cited_references"
+  | "potential_mismatch"
+  | "unable_to_verify"
+  | "verification_failed";
 
 export type VerificationErrorCategory =
-  | 'none'
-  | 'inaccessible_content'
-  | 'missing_transcript'
-  | 'ssrf_blocked'
-  | 'no_canonical_documentation'
-  | 'model_quota_timeout'
-  | 'invalid_schema';
+  | "none"
+  | "inaccessible_content"
+  | "missing_transcript"
+  | "ssrf_blocked"
+  | "no_canonical_documentation"
+  | "model_quota_timeout"
+  | "invalid_schema";
 
 export interface CanonicalDocReference {
   id: string;
@@ -175,7 +193,7 @@ export interface ResourceClaimComparison {
   claim: string;
   officialDocReference: string;
   officialDocUrl: string;
-  matchStatus: 'aligned' | 'deviates' | 'inconclusive';
+  matchStatus: "aligned" | "deviates" | "inconclusive";
   explanation: string;
 }
 
@@ -189,7 +207,11 @@ export interface VerificationReport {
   errorCategory: VerificationErrorCategory;
   checkedAt: string;
   assessedContentScope: string;
-  contentAccessMethod: 'public_transcript' | 'official_spec_ingest' | 'article_reader' | 'failed_access';
+  contentAccessMethod:
+    | "public_transcript"
+    | "official_spec_ingest"
+    | "article_reader"
+    | "failed_access";
   officialDocLinks: { title: string; url: string; authority: string }[];
   findings: string[];
   claims: ResourceClaimComparison[];
@@ -211,7 +233,7 @@ export interface LearningResource {
   url: string;
   platform: string;
   type: ResourceType;
-  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  difficulty: "beginner" | "intermediate" | "advanced";
   language?: string;
   durationOrReadTime: string;
   description?: string;
@@ -221,7 +243,7 @@ export interface LearningResource {
   lastCheckedDate: string;
   authorOrChannel?: string;
   reviewStats?: ResourceReviewStats;
-  provenance: 'curated' | 'admin_entered';
+  provenance: "curated" | "admin_entered";
   isReported?: boolean;
   verificationStatus: VerificationStatus;
   verificationReport?: VerificationReport;
@@ -247,9 +269,13 @@ export interface ReportedResourceIssue {
   resourceTitle: string;
   reportedBy: string;
   reportedAt: string;
-  reason: 'broken_link' | 'outdated_api' | 'inaccurate_content' | 'misleading_title';
+  reason:
+    | "broken_link"
+    | "outdated_api"
+    | "inaccurate_content"
+    | "misleading_title";
   studentNotes: string;
-  status: 'pending_review' | 'resolved' | 'dismissed';
+  status: "pending_review" | "resolved" | "dismissed";
   adminResolutionNote?: string;
   resolvedAt?: string;
   resolvedBy?: string;
@@ -259,7 +285,7 @@ export interface AssessmentQuestion {
   id: string;
   topicId: string;
   subtopic: string;
-  difficulty?: 'beginner' | 'intermediate' | 'advanced';
+  difficulty?: "beginner" | "intermediate" | "advanced";
   questionText: string;
   options: string[];
   correctOptionIndex: number;
@@ -292,7 +318,7 @@ export interface AssessmentAttempt {
   totalScore: number;
   maxScore: number;
   scorePercentage: number;
-  status: 'completed' | 'abandoned';
+  status: "completed" | "abandoned";
 }
 
 export interface SubtopicAnalysis {
@@ -301,18 +327,18 @@ export interface SubtopicAnalysis {
   totalQuestions: number;
   correctCount: number;
   accuracyRate: number; // 0 - 100
-  status: 'proficient' | 'needs_revision' | 'insufficient_evidence';
+  status: "proficient" | "needs_revision" | "insufficient_evidence";
   evidenceCount: number;
   minEvidenceRequired: number;
 }
 
 export interface LearningRecommendation {
   type:
-    | 'continue_next_topic'
-    | 'revise_subtopic'
-    | 'retry_assessment'
-    | 'review_prerequisites'
-    | 'more_practice_recommended';
+    | "continue_next_topic"
+    | "revise_subtopic"
+    | "retry_assessment"
+    | "review_prerequisites"
+    | "more_practice_recommended";
   topicId: string;
   topicTitle: string;
   subtopicTarget?: string;
@@ -340,12 +366,15 @@ export interface AssistantCitation {
   title: string;
   url: string;
   authorityName?: string;
-  provenance: 'canonical_spec' | 'verified_resource_report' | 'general_knowledge';
+  provenance:
+    | "canonical_spec"
+    | "verified_resource_report"
+    | "general_knowledge";
 }
 
 export interface ChatMessage {
   id: string;
-  sender: 'student' | 'assistant';
+  sender: "student" | "assistant";
   text: string;
   timestamp: string;
   topicContextId?: string;
@@ -353,12 +382,15 @@ export interface ChatMessage {
   citations?: AssistantCitation[];
   isStreaming?: boolean;
   hasError?: boolean;
-  groundingStatus?: 'grounded_in_canonical_docs' | 'general_knowledge_fallback' | 'unverified';
+  groundingStatus?:
+    | "grounded_in_canonical_docs"
+    | "general_knowledge_fallback"
+    | "unverified";
 }
 
 export interface ChatSessionContext {
   learningGoal?: string;
-  currentSkillLevel?: 'beginner' | 'intermediate' | 'advanced';
+  currentSkillLevel?: "beginner" | "intermediate" | "advanced";
   preferredLanguage?: string;
   activeTopic?: CatalogTopic | null;
   activeSubtopic?: string;
@@ -368,8 +400,7 @@ export interface ChatSessionContext {
 }
 
 export interface PlatformConfig {
-  geminiModel: string;
-  verificationStrictness: 'conservative' | 'standard' | 'strict';
+  verificationStrictness: "conservative" | "standard" | "strict";
   allowManualAssessmentOverride: boolean;
   maxDailyDoubtQueriesPerStudent: number;
   maintenanceMode: boolean;
@@ -380,8 +411,8 @@ export interface BackendHealthState {
   databaseConnected: boolean;
   databaseName: string;
   databaseHost: string;
-  aiProviderConfigured: boolean;
+  googleAiConfigured: boolean;
   activePort: number;
-  mode: 'standalone_express' | 'browser_orchestrated_service';
+  mode: "standalone_express" | "browser_orchestrated_service";
   latencyMs?: number;
 }

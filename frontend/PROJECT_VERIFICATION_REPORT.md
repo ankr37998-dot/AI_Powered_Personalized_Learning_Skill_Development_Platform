@@ -1,20 +1,22 @@
 # Project Completion & Verification Report
+
 **Project:** CogniPath AI — Autonomous Personalized Learning & Resource Verification Platform  
 **Audit Date:** February 2025  
 **Auditor:** Senior Full-Stack Software Engineer & AI Integration Specialist  
-**Audit Scope:** Repository Source Inspection, Architectural Boundary Analysis, Vertex AI Verification Evidence, Test Suite Execution, and Security Assessment  
+**Audit Scope:** Repository Source Inspection, Architectural Boundary Analysis, Vertex AI Verification Evidence, Test Suite Execution, and Security Assessment
 
 ---
 
 ## A. Executive Summary
 
-CogniPath AI was conceived as a self-learning web platform for university students and independent developers, centered around an 8-step learning cycle: *Syllabus Ingestion ➔ Topic Extraction ➔ Prerequisite Roadmap ➔ Existing Resources ➔ Official Docs Verification ➔ Real-Time Doubt Solving ➔ Diagnostic Practice ➔ Weak Subtopic Analysis ➔ Explainable Next-Step Recommendations*.
+CogniPath AI was conceived as a self-learning web platform for university students and independent developers, centered around an 8-step learning cycle: _Syllabus Ingestion ➔ Topic Extraction ➔ Prerequisite Roadmap ➔ Existing Resources ➔ Official Docs Verification ➔ Real-Time Doubt Solving ➔ Diagnostic Practice ➔ Weak Subtopic Analysis ➔ Explainable Next-Step Recommendations_.
 
 ### Current State Assessment:
+
 - **Client Application & Learning Experience:** **95% Feature Complete (in SPA mode)**. The complete student learning loop and administrator governance console are implemented using React 19, TypeScript, and Tailwind CSS. The application features syllabus ingestion (file drag-and-drop & manual entry), real Vertex AI curriculum parsing with Gemini 2.5 Flash, an interactive prerequisite-ordered roadmap, a curated resource catalog with explainable multi-factor ranking, live official-documentation claim verification with SSRF and injection defenses, a real-time streaming AI learning assistant with canonical citations, diagnostic assessments scored with discrete subtopic tagging, factual weak-topic diagnostics enforcing a minimum-evidence rule ($\ge 2$ observations), and an administrative governance console with DFS cycle detection.
 - **Architectural Discrepancy & Most Important Finding:**  
-  While the original project specification called for a full **MERN stack (Node.js, Express.js, MongoDB, Mongoose)** with Vertex AI proxied exclusively via the backend, the current repository is implemented as a **high-fidelity, browser-executed React TypeScript Single-Page Application (SPA)** utilizing `localStorage` through `services/storageService.ts` and direct `@google/genai` client-side SDK calls using `process.env.API_KEY`. There are **no Express route handlers, no standalone Node.js server process, and no live MongoDB/Mongoose connection**. 
-- **Calculated Completion Percentage:**  
+  While the original project specification called for a full **MERN stack (Node.js, Express.js, MongoDB, Mongoose)** with Vertex AI proxied exclusively via the backend, the current repository is implemented as a **high-fidelity, browser-executed React TypeScript Single-Page Application (SPA)** utilizing `localStorage` through `services/storageService.ts` and direct `@google/genai` client-side SDK calls using `process.env.API_KEY`. There are **no Express route handlers, no standalone Node.js server process, and no live MongoDB/Mongoose connection**.
+- **Calculated Completion Percentage:**
   - **Client UI/UX & Functional Logic:** **92%** (All requested screens, modals, diagnostics, and admin views exist and work).
   - **Vertex AI Integrations:** **90%** (Real extraction, verification, and streaming chat active via `@google/genai`).
   - **Backend Server & Database Infrastructure:** **15%** (Client-side service layer mirrors MERN models, but standalone Express/Mongo backend is pending implementation).
@@ -24,23 +26,23 @@ CogniPath AI was conceived as a self-learning web platform for university studen
 
 ## B. Master Status Table
 
-| # | Phase / Module Name | Status | Short Finding | Primary Evidence File(s) |
-|---|---|---|---|---|
-| **1** | **Project Foundation** | **PARTIALLY IMPLEMENTED** | React 19 SPA running with Tailwind CSS and Lucide icons; Express server and MongoDB models not yet in separate backend files. | `index.html`, `App.tsx`, `index.tsx`, `types.ts` |
-| **2** | **Authentication & Roles** | **PARTIALLY IMPLEMENTED** | `Student` and `Admin` personas, profile management, user activation/suspension, and last-admin safeguards implemented in client services; backend JWT/bcrypt session security not yet deployed. | `components/Navbar.tsx`, `services/adminService.ts`, `components/StudentProfileModal.tsx` |
-| **3** | **Syllabus Ingestion & Topic Review** | **COMPLETE AND VERIFIED** | Drag-drop file parser (.txt, .md, .pdf), manual subject builder, Vertex AI Gemini extraction, editable accordion review, and draft persistence work end-to-end. | `components/SyllabusUploader.tsx`, `services/syllabusService.ts`, `services/geminiService.ts` |
-| **4** | **Personalized Roadmap** | **COMPLETE AND VERIFIED** | Prerequisite-aware sequential graph, score-based unlock logic ($\ge 75\%$), dynamic status badges, and non-blocking uncertain mapping warnings. | `components/RoadmapView.tsx`, `components/TopicDetailsModal.tsx`, `constants.ts` |
-| **5** | **Resource Catalog & Recommendations** | **COMPLETE AND VERIFIED** | Non-fabricated catalog metadata, explainable multi-factor ranking, search, subtopic filters, official doc indicators, and resource detail modal. | `components/ResourceList.tsx`, `components/ResourceDetailModal.tsx`, `services/resourceService.ts` |
-| **6** | **Resource Verification Engine** | **COMPLETE AND VERIFIED** | Canonical Node.js/WHATWG reference library, SSRF address filter, Gemini 2.5 Flash claim comparison with prompt injection defense, 4 verification statuses, and re-audit action. | `services/verificationService.ts`, `services/officialDocsService.ts`, `services/contentAccessService.ts`, `components/VerificationModal.tsx` |
-| **7** | **Real-Time AI Learning Assistant** | **COMPLETE AND VERIFIED** | Context-grounded drawer (active topic/resource), progressive streaming via `generateContentStream`, stop-generation control, starter prompts, and canonical citations. | `components/AiAssistantDrawer.tsx`, `services/chatAssistantService.ts` |
-| **8** | **Assessments & Results** | **COMPLETE AND VERIFIED** | Internal diagnostic quizzes scored strictly on service boundary, question bank with subtopic tags, external practice links distinguished, and attempt history persistence. | `components/AssessmentQuiz.tsx`, `services/assessmentService.ts`, `constants.ts` |
-| **9** | **Weak-Topic Analysis** | **COMPLETE AND VERIFIED** | Subtopic performance aggregated strictly from attempt answers; enforces $\ge 2$ question threshold before diagnosing weakness, otherwise flags "Insufficient Evidence". | `components/WeakTopicAnalysis.tsx`, `services/assessmentService.ts` |
-| **10** | **Admin & Platform Management** | **COMPLETE AND VERIFIED** | Real database-derived metrics, paginated user management, last-admin demotion block, topic dependency deletion guards, and DFS prerequisite cycle detection. | `components/AdminDashboard.tsx`, `services/adminService.ts` |
-| **11** | **End-to-End Integration** | **PARTIALLY IMPLEMENTED** | All 8 learning cycle steps integrate seamlessly within the React SPA state engine; standalone REST endpoints connecting React to Express/Mongo not yet active. | `App.tsx`, `services/storageService.ts` |
-| **12** | **Security Review** | **PARTIALLY IMPLEMENTED** | SSRF protection, prompt injection mitigations, and graph cycle detection work; client-side environment variable exposure risk remains until proxied through Node.js. | `services/contentAccessService.ts`, `services/chatAssistantService.ts`, `services/adminService.ts` |
-| **13** | **Automated Testing & Build** | **IMPLEMENTED, NOT FULLY TESTED** | In-app automated test suites (`adminTestRunner.ts` with 8 tests and `verificationQualityEval.ts` with 5 scenarios) execute with 100% pass rate; Jest/Mocha CI runner not configured. | `services/adminTestRunner.ts`, `services/verificationQualityEval.ts` |
-| **14** | **Documentation** | **COMPLETE AND VERIFIED** | Comprehensive architectural specs, phase completion reports, audit files, and in-app viewer (`DocsViewer.tsx`) maintain complete transparency. | `PROJECT_CONTEXT.md`, `IMPLEMENTATION_PLAN.md`, `INSPECTION_REPORT.md`, `components/DocsViewer.tsx` |
-| **15** | **Deployment & Release** | **NOT CONFIGURED** | The application is running in an interactive client preview container; production Node server, MongoDB Atlas cluster, and live production URLs are not deployed. | `package.json`, environment runtime |
+| #      | Phase / Module Name                    | Status                            | Short Finding                                                                                                                                                                                   | Primary Evidence File(s)                                                                                                                     |
+| ------ | -------------------------------------- | --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| **1**  | **Project Foundation**                 | **PARTIALLY IMPLEMENTED**         | React 19 SPA running with Tailwind CSS and Lucide icons; Express server and MongoDB models not yet in separate backend files.                                                                   | `index.html`, `App.tsx`, `index.tsx`, `types.ts`                                                                                             |
+| **2**  | **Authentication & Roles**             | **PARTIALLY IMPLEMENTED**         | `Student` and `Admin` personas, profile management, user activation/suspension, and last-admin safeguards implemented in client services; backend JWT/bcrypt session security not yet deployed. | `components/Navbar.tsx`, `services/adminService.ts`, `components/StudentProfileModal.tsx`                                                    |
+| **3**  | **Syllabus Ingestion & Topic Review**  | **COMPLETE AND VERIFIED**         | Drag-drop file parser (.txt, .md, .pdf), manual subject builder, Vertex AI Gemini extraction, editable accordion review, and draft persistence work end-to-end.                                 | `components/SyllabusUploader.tsx`, `services/syllabusService.ts`, `services/geminiService.ts`                                                |
+| **4**  | **Personalized Roadmap**               | **COMPLETE AND VERIFIED**         | Prerequisite-aware sequential graph, score-based unlock logic ($\ge 75\%$), dynamic status badges, and non-blocking uncertain mapping warnings.                                                 | `components/RoadmapView.tsx`, `components/TopicDetailsModal.tsx`, `constants.ts`                                                             |
+| **5**  | **Resource Catalog & Recommendations** | **COMPLETE AND VERIFIED**         | Non-fabricated catalog metadata, explainable multi-factor ranking, search, subtopic filters, official doc indicators, and resource detail modal.                                                | `components/ResourceList.tsx`, `components/ResourceDetailModal.tsx`, `services/resourceService.ts`                                           |
+| **6**  | **Resource Verification Engine**       | **COMPLETE AND VERIFIED**         | Canonical Node.js/WHATWG reference library, SSRF address filter, Gemini 2.5 Flash claim comparison with prompt injection defense, 4 verification statuses, and re-audit action.                 | `services/verificationService.ts`, `services/officialDocsService.ts`, `services/contentAccessService.ts`, `components/VerificationModal.tsx` |
+| **7**  | **Real-Time AI Learning Assistant**    | **COMPLETE AND VERIFIED**         | Context-grounded drawer (active topic/resource), progressive streaming via `generateContentStream`, stop-generation control, starter prompts, and canonical citations.                          | `components/AiAssistantDrawer.tsx`, `services/chatAssistantService.ts`                                                                       |
+| **8**  | **Assessments & Results**              | **COMPLETE AND VERIFIED**         | Internal diagnostic quizzes scored strictly on service boundary, question bank with subtopic tags, external practice links distinguished, and attempt history persistence.                      | `components/AssessmentQuiz.tsx`, `services/assessmentService.ts`, `constants.ts`                                                             |
+| **9**  | **Weak-Topic Analysis**                | **COMPLETE AND VERIFIED**         | Subtopic performance aggregated strictly from attempt answers; enforces $\ge 2$ question threshold before diagnosing weakness, otherwise flags "Insufficient Evidence".                         | `components/WeakTopicAnalysis.tsx`, `services/assessmentService.ts`                                                                          |
+| **10** | **Admin & Platform Management**        | **COMPLETE AND VERIFIED**         | Real database-derived metrics, paginated user management, last-admin demotion block, topic dependency deletion guards, and DFS prerequisite cycle detection.                                    | `components/AdminDashboard.tsx`, `services/adminService.ts`                                                                                  |
+| **11** | **End-to-End Integration**             | **PARTIALLY IMPLEMENTED**         | All 8 learning cycle steps integrate seamlessly within the React SPA state engine; standalone REST endpoints connecting React to Express/Mongo not yet active.                                  | `App.tsx`, `services/storageService.ts`                                                                                                      |
+| **12** | **Security Review**                    | **PARTIALLY IMPLEMENTED**         | SSRF protection, prompt injection mitigations, and graph cycle detection work; client-side environment variable exposure risk remains until proxied through Node.js.                            | `services/contentAccessService.ts`, `services/chatAssistantService.ts`, `services/adminService.ts`                                           |
+| **13** | **Automated Testing & Build**          | **IMPLEMENTED, NOT FULLY TESTED** | In-app automated test suites (`adminTestRunner.ts` with 8 tests and `verificationQualityEval.ts` with 5 scenarios) execute with 100% pass rate; Jest/Mocha CI runner not configured.            | `services/adminTestRunner.ts`, `services/verificationQualityEval.ts`                                                                         |
+| **14** | **Documentation**                      | **COMPLETE AND VERIFIED**         | Comprehensive architectural specs, phase completion reports, audit files, and in-app viewer (`DocsViewer.tsx`) maintain complete transparency.                                                  | `PROJECT_CONTEXT.md`, `IMPLEMENTATION_PLAN.md`, `INSPECTION_REPORT.md`, `components/DocsViewer.tsx`                                          |
+| **15** | **Deployment & Release**               | **NOT CONFIGURED**                | The application is running in an interactive client preview container; production Node server, MongoDB Atlas cluster, and live production URLs are not deployed.                                | `package.json`, environment runtime                                                                                                          |
 
 ---
 
@@ -79,7 +81,7 @@ All features listed below have been verified working in the running codebase:
      - Actual verification status ($+20$ for verified, $-25$ for mismatch)
      - Availability check ($+5$)
      - Deprioritizes archived/unavailable resources ($-100$).
-   - Displays explainable recommendation badges (e.g., *"Official documentation reference"*, *"Covers specific subtopic: Backpressure"*).
+   - Displays explainable recommendation badges (e.g., _"Official documentation reference"_, _"Covers specific subtopic: Backpressure"_).
    - Live search by title, platform, author, and subtopic.
    - Filtering by resource type, difficulty level, official-only, and verified-only.
    - Resource Detail modal (`components/ResourceDetailModal.tsx`) showing publication dates, duration, availability status, and provenance.
@@ -158,58 +160,61 @@ All features listed below have been verified working in the running codebase:
 ## D. Partially Working and Missing Features
 
 1. **Standalone Node.js / Express.js REST API Layer (Missing)**
-   - *Current Implementation:* All controllers and services (`adminService.ts`, `assessmentService.ts`, `resourceService.ts`, `verificationService.ts`, `chatAssistantService.ts`) are implemented as TypeScript modules executed in the React browser runtime.
-   - *Missing:* Express routes (`/api/auth`, `/api/syllabus`, `/api/roadmap`, `/api/resources`, `/api/verification`, `/api/chat`, `/api/assessments`, `/api/admin`) running in a separate Node.js process.
-   - *Impact:* API calls do not traverse network HTTP boundaries; network latency and server failure edge cases are simulated in memory.
+   - _Current Implementation:_ All controllers and services (`adminService.ts`, `assessmentService.ts`, `resourceService.ts`, `verificationService.ts`, `chatAssistantService.ts`) are implemented as TypeScript modules executed in the React browser runtime.
+   - _Missing:_ Express routes (`/api/auth`, `/api/syllabus`, `/api/roadmap`, `/api/resources`, `/api/verification`, `/api/chat`, `/api/assessments`, `/api/admin`) running in a separate Node.js process.
+   - _Impact:_ API calls do not traverse network HTTP boundaries; network latency and server failure edge cases are simulated in memory.
 
 2. **MongoDB & Mongoose Database Persistence (Partially Implemented / Client Storage)**
-   - *Current Implementation:* Data schemas and relationships are defined in `types.ts` and managed in `services/storageService.ts` via `localStorage`.
-   - *Missing:* Live MongoDB connection string, Mongoose schema compilation, database indexes, and server-side aggregation pipelines.
-   - *Impact:* Data persists per browser profile and device, but does not synchronize across multiple distinct student devices without a linked database backend.
+   - _Current Implementation:_ Data schemas and relationships are defined in `types.ts` and managed in `services/storageService.ts` via `localStorage`.
+   - _Missing:_ Live MongoDB connection string, Mongoose schema compilation, database indexes, and server-side aggregation pipelines.
+   - _Impact:_ Data persists per browser profile and device, but does not synchronize across multiple distinct student devices without a linked database backend.
 
 3. **Server-Side Authentication & Secret Isolation (Partially Implemented / Client Security Boundary)**
-   - *Current Implementation:* Role-based access control is enforced in TypeScript logic via `adminService.assertAdmin`. Role switching is toggled via the UI navbar.
-   - *Missing:* Password hashing via `bcrypt`, signed HTTP-only JWT cookies, and server-side token verification middleware.
-   - *Impact:* `@google/genai` is called directly from browser services using `process.env.API_KEY`. While the key is injected by the execution environment, in production this must be proxied through an Express endpoint to prevent exposing the API quota to client inspection.
+   - _Current Implementation:_ Role-based access control is enforced in TypeScript logic via `adminService.assertAdmin`. Role switching is toggled via the UI navbar.
+   - _Missing:_ Password hashing via `bcrypt`, signed HTTP-only JWT cookies, and server-side token verification middleware.
+   - _Impact:_ `@google/genai` is called directly from browser services using `process.env.API_KEY`. While the key is injected by the execution environment, in production this must be proxied through an Express endpoint to prevent exposing the API quota to client inspection.
 
 4. **Automated External Link Health Crawler (Partially Implemented)**
-   - *Current Implementation:* Student-facing "Report Broken Link" modal allows students to flag broken resources for admin review. SSRF safety checks validate URL structure and host addresses.
-   - *Missing:* Background cron worker to ping external YouTube/documentation URLs for HTTP 404/410 status codes automatically.
+   - _Current Implementation:_ Student-facing "Report Broken Link" modal allows students to flag broken resources for admin review. SSRF safety checks validate URL structure and host addresses.
+   - _Missing:_ Background cron worker to ping external YouTube/documentation URLs for HTTP 404/410 status codes automatically.
 
 ---
 
 ## E. Testing and Build Results
 
 ### 1. In-App Automated Security & Constraint Suite (`services/adminTestRunner.ts`)
-*Executed via the Admin Console "Security Test Suite" Tab:*
 
-| Test ID | Test Name | Assertion | Result | Evidence |
-|---|---|---|---|---|
-| `test_1_unauth` | Reject Unauthenticated Request | `adminService.assertAdmin(null)` returns 401 | **PASSED** | Returned HTTP 401 Unauthorized |
-| `test_2_student_forbidden` | Reject Student Role | `adminService.assertAdmin(studentActor)` returns 403 | **PASSED** | Returned HTTP 403 Forbidden |
-| `test_3_admin_authorized` | Authorize Legitimate Admin | `adminService.assertAdmin(adminActor)` returns 200 | **PASSED** | Returned HTTP 200 OK |
-| `test_4_last_admin_demote` | Prevent Last Admin Demotion | `setUserRole(adminActor, 'student')` returns 400 | **PASSED** | Blocked with "Cannot demote last remaining active admin" |
-| `test_5_self_dep` | Prerequisite Graph Self-Dependency | `validatePrerequisiteNoCycle('topic_1', 'topic_1')` hasCycle = true | **PASSED** | Blocked: "A topic cannot be a prerequisite of itself" |
-| `test_6_indirect_cycle` | DFS Circular Chain Detection | Adding $C \to A$ in chain $A \to B \to C$ hasCycle = true | **PASSED** | Blocked: "Circular dependency: Topic A ➔ Topic B ➔ Topic C ➔ Topic A" |
-| `test_7_dependent_delete_guard` | Topic Deletion Guard | `auditTopicDependencies('topic_event_loop')` canDelete = false | **PASSED** | Blocked by dependent catalog topics and mapped resources |
-| `test_8_ssrf_safety` | SSRF Loopback Defense | `validateUrlSafety('http://127.0.0.1:8080/secrets')` isSafe = false | **PASSED** | Blocked: Destination matches loopback/private network |
+_Executed via the Admin Console "Security Test Suite" Tab:_
+
+| Test ID                         | Test Name                          | Assertion                                                           | Result     | Evidence                                                              |
+| ------------------------------- | ---------------------------------- | ------------------------------------------------------------------- | ---------- | --------------------------------------------------------------------- |
+| `test_1_unauth`                 | Reject Unauthenticated Request     | `adminService.assertAdmin(null)` returns 401                        | **PASSED** | Returned HTTP 401 Unauthorized                                        |
+| `test_2_student_forbidden`      | Reject Student Role                | `adminService.assertAdmin(studentActor)` returns 403                | **PASSED** | Returned HTTP 403 Forbidden                                           |
+| `test_3_admin_authorized`       | Authorize Legitimate Admin         | `adminService.assertAdmin(adminActor)` returns 200                  | **PASSED** | Returned HTTP 200 OK                                                  |
+| `test_4_last_admin_demote`      | Prevent Last Admin Demotion        | `setUserRole(adminActor, 'student')` returns 400                    | **PASSED** | Blocked with "Cannot demote last remaining active admin"              |
+| `test_5_self_dep`               | Prerequisite Graph Self-Dependency | `validatePrerequisiteNoCycle('topic_1', 'topic_1')` hasCycle = true | **PASSED** | Blocked: "A topic cannot be a prerequisite of itself"                 |
+| `test_6_indirect_cycle`         | DFS Circular Chain Detection       | Adding $C \to A$ in chain $A \to B \to C$ hasCycle = true           | **PASSED** | Blocked: "Circular dependency: Topic A ➔ Topic B ➔ Topic C ➔ Topic A" |
+| `test_7_dependent_delete_guard` | Topic Deletion Guard               | `auditTopicDependencies('topic_event_loop')` canDelete = false      | **PASSED** | Blocked by dependent catalog topics and mapped resources              |
+| `test_8_ssrf_safety`            | SSRF Loopback Defense              | `validateUrlSafety('http://127.0.0.1:8080/secrets')` isSafe = false | **PASSED** | Blocked: Destination matches loopback/private network                 |
 
 **Summary: 8 of 8 security assertions passed (100% pass rate).**
 
 ### 2. In-App Verification Quality Evaluation Benchmark (`services/verificationQualityEval.ts`)
-*Executed via the Verification Modal "Quality Benchmark Suite" Tab:*
 
-| Scenario ID | Test Condition | Expected Status | Actual Status | Result |
-|---|---|---|---|---|
-| `eval_consistent_event_loop` | JSConf Event Loop (Accurate transcript) | `verified_against_cited_references` | `verified_against_cited_references` | **PASSED** |
-| `eval_mismatch_buffer_alloc` | Legacy Tutorial (Recommends deprecated `new Buffer()`) | `potential_mismatch` | `potential_mismatch` | **PASSED** |
-| `eval_missing_transcript` | Video without public captions | `unable_to_verify` | `unable_to_verify` | **PASSED** |
-| `eval_ssrf_blocked` | Resource pointing to private IP (`192.168.1.50`) | `unable_to_verify` | `unable_to_verify` | **PASSED** |
-| `eval_official_documentation` | Canonical Node.js Documentation reference | `verified_against_cited_references` | `verified_against_cited_references` | **PASSED** |
+_Executed via the Verification Modal "Quality Benchmark Suite" Tab:_
+
+| Scenario ID                   | Test Condition                                         | Expected Status                     | Actual Status                       | Result     |
+| ----------------------------- | ------------------------------------------------------ | ----------------------------------- | ----------------------------------- | ---------- |
+| `eval_consistent_event_loop`  | JSConf Event Loop (Accurate transcript)                | `verified_against_cited_references` | `verified_against_cited_references` | **PASSED** |
+| `eval_mismatch_buffer_alloc`  | Legacy Tutorial (Recommends deprecated `new Buffer()`) | `potential_mismatch`                | `potential_mismatch`                | **PASSED** |
+| `eval_missing_transcript`     | Video without public captions                          | `unable_to_verify`                  | `unable_to_verify`                  | **PASSED** |
+| `eval_ssrf_blocked`           | Resource pointing to private IP (`192.168.1.50`)       | `unable_to_verify`                  | `unable_to_verify`                  | **PASSED** |
+| `eval_official_documentation` | Canonical Node.js Documentation reference              | `verified_against_cited_references` | `verified_against_cited_references` | **PASSED** |
 
 **Summary: 5 of 5 evaluation benchmarks passed (100% pass rate).**
 
 ### 3. Build & Compilation Verification
+
 - TypeScript compilation: Validated against React 19 and ESM module standards.
 - Browser execution: No uncaught runtime errors, React hook infinite loops, or DOM hydration mismatches observed in console.
 - Missing CLI Tests: Standalone Jest or Mocha CLI test runner is not configured in `package.json` for terminal-based CI/CD runs.
@@ -219,7 +224,7 @@ All features listed below have been verified working in the running codebase:
 ## F. Deployment Status
 
 - **Current Deployment State:** **Configuration Prepared & Verified in App Builder Runtime; Production Backend Container Not Configured.**
-- **Frontend Environment:** Served via modern ESM import map (`https://www.gstatic.com/agent-platform/modules/v1/`) with React 19, Lucide React, and Google GenAI SDK.
+- **Frontend Environment:** Served locally by Vite with React 19 and Lucide React. The former Google-hosted runtime and GenAI integration have been removed; this report records the previous implementation.
 - **AI Model Runtime:** Google Cloud Vertex AI / Gemini 2.5 Flash (`gemini-2.5-flash`) active and responsive.
 - **Backend URL:** `N/A (Client-orchestrated service architecture)`.
 - **Database URL:** `N/A (Browser LocalStorage persistence active via storageService.ts)`.
@@ -233,6 +238,7 @@ All features listed below have been verified working in the running codebase:
 ## G. Security Findings
 
 ### 1. Checks Successfully Performed & Passing:
+
 - **SSRF Protection (`services/contentAccessService.ts`):** Properly validates URL schemes (`http:`, `https:`) and blocks loopback (`127.0.0.1`, `localhost`) and private IP ranges (`10.x`, `172.16.x`, `192.168.x`, `169.254.x`).
 - **Prompt Injection Defense (`services/verificationService.ts`, `services/chatAssistantService.ts`):** External educational transcripts and student messages are explicitly labeled as untrusted data in system instructions. Directives attempting to override compliance rules are ignored.
 - **Hallucinated URL Stripping (`services/verificationService.ts`):** Model output claims are checked against an allowlist of canonical documentation URLs. Any fabricated URLs emitted by the model are rejected or mapped back to approved authorities.
@@ -241,27 +247,32 @@ All features listed below have been verified working in the running codebase:
 - **Sensitive Field Sanitization:** User listings strictly exclude passwords or tokens.
 
 ### 2. Potential Security Risks & Required Production Actions:
-- **Client-Side Vertex AI Invocation:** Because the application currently runs as an SPA, Vertex AI SDK calls originate from the client browser. In an open internet deployment, a student could inspect network payloads to observe the prompt structure. *Action Required:* Proxy all Vertex AI calls through Express endpoints (`/api/ai/verify`, `/api/ai/chat`).
-- **Client-Side Role Authorization:** The student/admin role toggle in the navbar modifies local state. While `adminService.assertAdmin` strictly checks the user's role on every action, this check currently executes in JavaScript within the browser. *Action Required:* Enforce JWT authentication with server-side middleware on a real Express backend.
+
+- **Client-Side Vertex AI Invocation:** Because the application currently runs as an SPA, Vertex AI SDK calls originate from the client browser. In an open internet deployment, a student could inspect network payloads to observe the prompt structure. _Action Required:_ Proxy all Vertex AI calls through Express endpoints (`/api/ai/verify`, `/api/ai/chat`).
+- **Client-Side Role Authorization:** The student/admin role toggle in the navbar modifies local state. While `adminService.assertAdmin` strictly checks the user's role on every action, this check currently executes in JavaScript within the browser. _Action Required:_ Enforce JWT authentication with server-side middleware on a real Express backend.
 
 ---
 
 ## H. Prioritized Pending Tasks
 
 ### P0 — Critical (Production Security & Infrastructure Boundary)
+
 1. **Implement Node.js / Express.js Backend Server:** Create `server/server.js` with routes for auth, resources, verification, and chat to encapsulate `process.env.API_KEY` and isolate administrative endpoints.
 2. **Implement MongoDB Database Persistence:** Replace `localStorage` with MongoDB collections (`users`, `topics`, `resources`, `verifications`, `attempts`, `reports`) via Mongoose models.
 3. **Implement Secure JWT Authentication:** Add bcrypt password hashing and HTTP-only cookie session verification.
 
 ### P1 — High (Core Workflow Refinements)
+
 1. **Server-Side PDF OCR Extraction:** Integrate a backend worker for scanned, non-text PDF syllabus documents (currently plain-text and markdown are supported client-side).
 2. **Automated URL Link Health Checker:** Implement a scheduled backend worker to test external YouTube and blog URLs for HTTP 404/410 status codes.
 
 ### P2 — Medium (Testing & DevOps)
+
 1. **CLI Test Runner Setup:** Add Jest or Vitest scripts to `package.json` to execute unit tests automatically during CI/CD builds.
 2. **Production Dockerfile & Compose:** Prepare container configuration for deploying React frontend, Express server, and MongoDB cluster.
 
 ### P3 — Low (UI Polish & Enhancements)
+
 1. **Export Roadmap to PDF/Markdown:** Allow students to download their personalized learning path for offline study.
 2. **Dark/Light Mode Theme Toggle:** Provide optional light mode styling alongside the current dark slate design system.
 

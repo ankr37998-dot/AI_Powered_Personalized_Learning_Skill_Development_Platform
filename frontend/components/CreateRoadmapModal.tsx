@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   CreateRoadmapPayload,
   GoalCategory,
   SavedRoadmap,
-  RoadmapNode
-} from '../types';
-import { geminiService } from '../services/geminiService';
+  RoadmapNode,
+} from "../types";
 import {
   Sparkles,
   X,
@@ -23,8 +22,9 @@ import {
   ChevronUp,
   RotateCw,
   Plus,
-  Trash2
-} from 'lucide-react';
+  Trash2,
+} from "lucide-react";
+import { googleAiService } from "../services/googleAiService";
 
 interface CreateRoadmapModalProps {
   onClose: () => void;
@@ -33,33 +33,69 @@ interface CreateRoadmapModalProps {
 
 export const CreateRoadmapModal: React.FC<CreateRoadmapModalProps> = ({
   onClose,
-  onRoadmapConfirmed
+  onRoadmapConfirmed,
 }) => {
   // Step 1: Input & Personalization
-  const [step, setStep] = useState<'input' | 'generating' | 'preview'>('input');
-  const [category, setCategory] = useState<GoalCategory>('skill');
-  const [goalTitle, setGoalTitle] = useState('');
-  const [goalDescription, setGoalDescription] = useState('');
-  const [skillLevel, setSkillLevel] = useState<'beginner' | 'intermediate' | 'advanced'>('intermediate');
-  const [priorKnowledge, setPriorKnowledge] = useState('');
+  const [step, setStep] = useState<"input" | "generating" | "preview">("input");
+  const [category, setCategory] = useState<GoalCategory>("skill");
+  const [goalTitle, setGoalTitle] = useState("");
+  const [goalDescription, setGoalDescription] = useState("");
+  const [skillLevel, setSkillLevel] = useState<
+    "beginner" | "intermediate" | "advanced"
+  >("intermediate");
+  const [priorKnowledge, setPriorKnowledge] = useState("");
   const [weeklyHours, setWeeklyHours] = useState<number>(8);
-  const [targetFocus, setTargetFocus] = useState<'comprehensive' | 'project_oriented' | 'interview_prep' | 'exam_prep'>('comprehensive');
+  const [targetFocus, setTargetFocus] = useState<
+    "comprehensive" | "project_oriented" | "interview_prep" | "exam_prep"
+  >("comprehensive");
 
   // Step 2 & 3: Generated Roadmap Preview & Edit
-  const [generatedRoadmap, setGeneratedRoadmap] = useState<SavedRoadmap | null>(null);
+  const [generatedRoadmap, setGeneratedRoadmap] = useState<SavedRoadmap | null>(
+    null,
+  );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Suggested Goal Preset Chips
   const presetSuggestions = [
-    { title: 'Android Development with Kotlin & Compose', category: 'skill' as GoalCategory, level: 'beginner' as const, hours: 10 },
-    { title: 'Web Development with React & TypeScript', category: 'skill' as GoalCategory, level: 'intermediate' as const, hours: 8 },
-    { title: 'Backend Developer with Java & Spring Boot', category: 'career' as GoalCategory, level: 'intermediate' as const, hours: 12 },
-    { title: 'Data Structures and Algorithms in Python', category: 'skill' as GoalCategory, level: 'beginner' as const, hours: 6 },
-    { title: 'Relational SQL & Database Architecture', category: 'skill' as GoalCategory, level: 'intermediate' as const, hours: 6 },
-    { title: 'Machine Learning Fundamentals with PyTorch', category: 'skill' as GoalCategory, level: 'intermediate' as const, hours: 10 }
+    {
+      title: "Android Development with Kotlin & Compose",
+      category: "skill" as GoalCategory,
+      level: "beginner" as const,
+      hours: 10,
+    },
+    {
+      title: "Web Development with React & TypeScript",
+      category: "skill" as GoalCategory,
+      level: "intermediate" as const,
+      hours: 8,
+    },
+    {
+      title: "Backend Developer with Java & Spring Boot",
+      category: "career" as GoalCategory,
+      level: "intermediate" as const,
+      hours: 12,
+    },
+    {
+      title: "Data Structures and Algorithms in Python",
+      category: "skill" as GoalCategory,
+      level: "beginner" as const,
+      hours: 6,
+    },
+    {
+      title: "Relational SQL & Database Architecture",
+      category: "skill" as GoalCategory,
+      level: "intermediate" as const,
+      hours: 6,
+    },
+    {
+      title: "Machine Learning Fundamentals with PyTorch",
+      category: "skill" as GoalCategory,
+      level: "intermediate" as const,
+      hours: 10,
+    },
   ];
 
-  const handleSelectPreset = (preset: typeof presetSuggestions[0]) => {
+  const handleSelectPreset = (preset: (typeof presetSuggestions)[0]) => {
     setCategory(preset.category);
     setGoalTitle(preset.title);
     setSkillLevel(preset.level);
@@ -68,11 +104,11 @@ export const CreateRoadmapModal: React.FC<CreateRoadmapModalProps> = ({
 
   const handleGenerate = async () => {
     if (!goalTitle.trim()) {
-      setErrorMessage('Please specify what you want to learn.');
+      setErrorMessage("Please specify what you want to learn.");
       return;
     }
     setErrorMessage(null);
-    setStep('generating');
+    setStep("generating");
 
     try {
       const payload: CreateRoadmapPayload = {
@@ -82,16 +118,16 @@ export const CreateRoadmapModal: React.FC<CreateRoadmapModalProps> = ({
         skillLevel,
         priorKnowledge: priorKnowledge.trim(),
         weeklyHours: Number(weeklyHours) || 8,
-        targetFocus
+        targetFocus,
       };
 
-      const result = await geminiService.generatePersonalizedRoadmap(payload);
-      setGeneratedRoadmap(result);
-      setStep('preview');
+      const roadmap = await googleAiService.generateRoadmap(payload);
+      setGeneratedRoadmap(roadmap);
+      setStep("preview");
     } catch (err: any) {
-      console.error('Roadmap generation failed:', err);
-      setErrorMessage(err.message || 'Failed to generate roadmap from Vertex AI. Please retry.');
-      setStep('input');
+      console.error("Roadmap generation failed:", err);
+      setErrorMessage(err.message || "Roadmap generation is unavailable.");
+      setStep("input");
     }
   };
 
@@ -99,14 +135,16 @@ export const CreateRoadmapModal: React.FC<CreateRoadmapModalProps> = ({
   const handleUpdateNodeTitle = (topicId: string, newTitle: string) => {
     if (!generatedRoadmap) return;
     const updatedNodes = generatedRoadmap.nodes.map((n) =>
-      n.topicId === topicId ? { ...n, title: newTitle } : n
+      n.topicId === topicId ? { ...n, title: newTitle } : n,
     );
     setGeneratedRoadmap({ ...generatedRoadmap, nodes: updatedNodes });
   };
 
   const handleDeleteNode = (topicId: string) => {
     if (!generatedRoadmap || generatedRoadmap.nodes.length <= 1) return;
-    const updatedNodes = generatedRoadmap.nodes.filter((n) => n.topicId !== topicId);
+    const updatedNodes = generatedRoadmap.nodes.filter(
+      (n) => n.topicId !== topicId,
+    );
     setGeneratedRoadmap({ ...generatedRoadmap, nodes: updatedNodes });
   };
 
@@ -127,12 +165,14 @@ export const CreateRoadmapModal: React.FC<CreateRoadmapModalProps> = ({
             </div>
             <div>
               <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white leading-tight">
-                {step === 'preview' ? 'Review & Customize Roadmap' : 'Generate Personalized Learning Roadmap'}
+                {step === "preview"
+                  ? "Review & Customize Roadmap"
+                  : "Generate Personalized Learning Roadmap"}
               </h2>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                {step === 'preview'
-                  ? 'Verify learning phases, topics, and prerequisites before starting.'
-                  : 'Tell Vertex AI Gemini what skill or career you want to master.'}
+                {step === "preview"
+                  ? "Verify learning phases, topics, and prerequisites before starting."
+                  : "Gemini will create a draft roadmap for you to review."}
               </p>
             </div>
           </div>
@@ -155,7 +195,7 @@ export const CreateRoadmapModal: React.FC<CreateRoadmapModalProps> = ({
         )}
 
         {/* STEP 1: INPUT & PERSONALIZATION */}
-        {step === 'input' && (
+        {step === "input" && (
           <div className="space-y-4 text-xs">
             {/* Category Selector Tabs */}
             <div className="space-y-1.5">
@@ -164,10 +204,26 @@ export const CreateRoadmapModal: React.FC<CreateRoadmapModalProps> = ({
               </label>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {[
-                  { id: 'skill' as GoalCategory, label: 'New Skill', icon: Code2 },
-                  { id: 'career' as GoalCategory, label: 'Career Role', icon: Briefcase },
-                  { id: 'syllabus' as GoalCategory, label: 'Course Subject', icon: BookOpen },
-                  { id: 'custom' as GoalCategory, label: 'Custom Goal', icon: Compass }
+                  {
+                    id: "skill" as GoalCategory,
+                    label: "New Skill",
+                    icon: Code2,
+                  },
+                  {
+                    id: "career" as GoalCategory,
+                    label: "Career Role",
+                    icon: Briefcase,
+                  },
+                  {
+                    id: "syllabus" as GoalCategory,
+                    label: "Course Subject",
+                    icon: BookOpen,
+                  },
+                  {
+                    id: "custom" as GoalCategory,
+                    label: "Custom Goal",
+                    icon: Compass,
+                  },
                 ].map((item) => {
                   const Icon = item.icon;
                   const isSelected = category === item.id;
@@ -178,8 +234,8 @@ export const CreateRoadmapModal: React.FC<CreateRoadmapModalProps> = ({
                       onClick={() => setCategory(item.id)}
                       className={`p-2.5 rounded-xl border flex items-center space-x-2 transition ${
                         isSelected
-                          ? 'border-indigo-500 bg-indigo-50/60 dark:bg-indigo-950/30 text-indigo-700 dark:text-indigo-300 font-semibold'
-                          : 'border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-850'
+                          ? "border-indigo-500 bg-indigo-50/60 dark:bg-indigo-950/30 text-indigo-700 dark:text-indigo-300 font-semibold"
+                          : "border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-850"
                       }`}
                     >
                       <Icon className="w-4 h-4" />
@@ -264,7 +320,9 @@ export const CreateRoadmapModal: React.FC<CreateRoadmapModalProps> = ({
                   min={2}
                   max={40}
                   value={weeklyHours}
-                  onChange={(e) => setWeeklyHours(parseInt(e.target.value) || 8)}
+                  onChange={(e) =>
+                    setWeeklyHours(parseInt(e.target.value) || 8)
+                  }
                   className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-2 text-xs text-slate-800 dark:text-slate-200 focus:outline-none font-mono"
                 />
               </div>
@@ -279,8 +337,12 @@ export const CreateRoadmapModal: React.FC<CreateRoadmapModalProps> = ({
                   className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-2 text-xs text-slate-800 dark:text-slate-200 focus:outline-none"
                 >
                   <option value="comprehensive">Comprehensive Mastery</option>
-                  <option value="project_oriented">Hands-on Project Building</option>
-                  <option value="interview_prep">Technical Interview Prep</option>
+                  <option value="project_oriented">
+                    Hands-on Project Building
+                  </option>
+                  <option value="interview_prep">
+                    Technical Interview Prep
+                  </option>
                   <option value="exam_prep">College / Academic Exam</option>
                 </select>
               </div>
@@ -313,17 +375,18 @@ export const CreateRoadmapModal: React.FC<CreateRoadmapModalProps> = ({
               <button
                 type="button"
                 onClick={handleGenerate}
-                className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition shadow-sm"
+                disabled={step === "generating"}
+                className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition shadow-sm disabled:opacity-60"
               >
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>Generate Roadmap with Gemini 2.5</span>
+                <span>Generate Roadmap</span>
               </button>
             </div>
           </div>
         )}
 
         {/* STEP 2: GENERATION IN PROGRESS */}
-        {step === 'generating' && (
+        {step === "generating" && (
           <div className="p-8 sm:p-12 text-center space-y-4">
             <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/30 flex items-center justify-center mx-auto animate-pulse">
               <RotateCw className="w-6 h-6 animate-spin" />
@@ -333,14 +396,14 @@ export const CreateRoadmapModal: React.FC<CreateRoadmapModalProps> = ({
                 Architecting Personalized Roadmap for "{goalTitle}"
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-md mx-auto leading-relaxed">
-                Calling Google Vertex AI / Gemini 2.5 Flash to decompose curriculum modules, enforce acyclic prerequisite ordering, and calculate study hour milestones...
+                Gemini is creating your learning roadmap...
               </p>
             </div>
           </div>
         )}
 
         {/* STEP 3: PREVIEW & CUSTOMIZATION */}
-        {step === 'preview' && generatedRoadmap && (
+        {step === "preview" && generatedRoadmap && (
           <div className="space-y-4 text-xs">
             {/* Overview Card */}
             <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-925 border border-slate-200/80 dark:border-slate-800 space-y-2">
@@ -362,14 +425,18 @@ export const CreateRoadmapModal: React.FC<CreateRoadmapModalProps> = ({
                 <span>•</span>
                 <span>{generatedRoadmap.weeklyHours} hrs/week pace</span>
                 <span>•</span>
-                <span className="capitalize">{generatedRoadmap.skillLevel} Entry</span>
+                <span className="capitalize">
+                  {generatedRoadmap.skillLevel} Entry
+                </span>
               </div>
             </div>
 
             {/* Editable Phases and Topics */}
             <div className="space-y-3 max-h-[380px] overflow-y-auto pr-1">
               {generatedRoadmap.phases.map((phase) => {
-                const phaseNodes = generatedRoadmap.nodes.filter((n) => n.phaseId === phase.id);
+                const phaseNodes = generatedRoadmap.nodes.filter(
+                  (n) => n.phaseId === phase.id,
+                );
 
                 return (
                   <div
@@ -397,7 +464,12 @@ export const CreateRoadmapModal: React.FC<CreateRoadmapModalProps> = ({
                             <input
                               type="text"
                               value={node.title}
-                              onChange={(e) => handleUpdateNodeTitle(node.topicId, e.target.value)}
+                              onChange={(e) =>
+                                handleUpdateNodeTitle(
+                                  node.topicId,
+                                  e.target.value,
+                                )
+                              }
                               className="font-semibold text-slate-800 dark:text-slate-200 bg-transparent text-xs focus:outline-none w-full"
                             />
                             <p className="text-[10px] text-slate-400 truncate">
@@ -430,7 +502,7 @@ export const CreateRoadmapModal: React.FC<CreateRoadmapModalProps> = ({
             <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
               <button
                 type="button"
-                onClick={() => setStep('input')}
+                onClick={() => setStep("input")}
                 className="text-slate-500 hover:text-slate-900 dark:hover:text-white text-xs flex items-center space-x-1"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />

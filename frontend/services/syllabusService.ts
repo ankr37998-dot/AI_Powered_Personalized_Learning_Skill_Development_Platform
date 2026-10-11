@@ -1,8 +1,13 @@
-import { ExtractedTopic, SubjectUnitGroup, SyllabusDraft, SyllabusFileMetadata } from '../types';
+import {
+  ExtractedTopic,
+  SubjectUnitGroup,
+  SyllabusDraft,
+  SyllabusFileMetadata,
+} from "../types";
 
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
-const SUPPORTED_EXTENSIONS = ['.txt', '.pdf', '.md', '.text'];
-const DRAFT_STORAGE_KEY = 'cognipath_syllabus_draft';
+const SUPPORTED_EXTENSIONS = [".txt", ".pdf", ".md", ".text"];
+const DRAFT_STORAGE_KEY = "cognipath_syllabus_draft";
 
 export interface FileValidationResult {
   isValid: boolean;
@@ -16,33 +21,37 @@ export const syllabusService = {
    */
   validateFile(file: File): FileValidationResult {
     if (!file) {
-      return { isValid: false, errorMessage: 'No file was provided.' };
+      return { isValid: false, errorMessage: "No file was provided." };
     }
 
     if (file.size === 0) {
-      return { isValid: false, errorMessage: 'The selected file is empty (0 bytes).' };
+      return {
+        isValid: false,
+        errorMessage: "The selected file is empty (0 bytes).",
+      };
     }
 
     if (file.size > MAX_FILE_SIZE_BYTES) {
       const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
       return {
         isValid: false,
-        errorMessage: `File exceeds maximum size limit of 5MB (selected file: ${sizeMB}MB).`
+        errorMessage: `File exceeds maximum size limit of 5MB (selected file: ${sizeMB}MB).`,
       };
     }
 
     const name = file.name.toLowerCase();
     const hasValidExt = SUPPORTED_EXTENSIONS.some((ext) => name.endsWith(ext));
     const isSupportedMime =
-      file.type === 'text/plain' ||
-      file.type === 'text/markdown' ||
-      file.type === 'application/pdf' ||
-      file.type === '';
+      file.type === "text/plain" ||
+      file.type === "text/markdown" ||
+      file.type === "application/pdf" ||
+      file.type === "";
 
     if (!hasValidExt && !isSupportedMime) {
       return {
         isValid: false,
-        errorMessage: 'Unsupported format. Please upload a .txt, .pdf, or .md file.'
+        errorMessage:
+          "Unsupported format. Please upload a .txt, .pdf, or .md file.",
       };
     }
 
@@ -51,9 +60,9 @@ export const syllabusService = {
       metadata: {
         name: file.name,
         size: file.size,
-        type: file.type || 'text/plain',
-        lastModified: file.lastModified
-      }
+        type: file.type || "text/plain",
+        lastModified: file.lastModified,
+      },
     };
   },
 
@@ -65,15 +74,56 @@ export const syllabusService = {
       const reader = new FileReader();
       reader.onload = (e) => {
         const result = e.target?.result;
-        if (typeof result === 'string') {
+        if (typeof result === "string") {
           resolve(result);
         } else {
-          reject(new Error('Failed to read file content as text.'));
+          reject(new Error("Failed to read file content as text."));
         }
       };
-      reader.onerror = () => reject(new Error('File reading encountered an I/O error.'));
+      reader.onerror = () =>
+        reject(new Error("File reading encountered an I/O error."));
       reader.readAsText(file);
     });
+  },
+
+  extractTopicsFromText(rawText: string): ExtractedTopic[] {
+    const topics: ExtractedTopic[] = [];
+    let unitOrModule = "General Topics";
+
+    rawText.split(/\r?\n/).forEach((rawLine) => {
+      const line = rawLine.trim();
+      if (!line) return;
+
+      const heading = line.replace(/[:：]$/, "").trim();
+      if (
+        /^(unit|module|chapter|section|week|part)\b/i.test(heading) ||
+        (line.endsWith(":") && line.length < 100)
+      ) {
+        unitOrModule = heading;
+        return;
+      }
+
+      const title = line.replace(/^(?:[-*•]\s+|\d+[.)]\s+)/, "").trim();
+      if (title.length < 3 || title.length > 200) return;
+
+      topics.push({
+        id: `topic_${topics.length + 1}`,
+        title,
+        unitOrModule,
+        description: "Imported from syllabus text. Review and edit before use.",
+        confidence: "medium",
+        prerequisites: [],
+        order: topics.length + 1,
+      });
+    });
+
+    if (topics.length === 0) {
+      throw new Error(
+        "No readable topic lines found. Add topics manually or use a plain-text syllabus.",
+      );
+    }
+
+    return topics;
   },
 
   /**
@@ -83,7 +133,7 @@ export const syllabusService = {
     const map = new Map<string, ExtractedTopic[]>();
 
     topics.forEach((t) => {
-      const key = t.unitOrModule?.trim() || 'General Topics';
+      const key = t.unitOrModule?.trim() || "General Topics";
       if (!map.has(key)) {
         map.set(key, []);
       }
@@ -95,7 +145,7 @@ export const syllabusService = {
       groups.push({
         name,
         isExpanded: true,
-        topics: items
+        topics: items,
       });
     });
 
@@ -114,7 +164,7 @@ export const syllabusService = {
         flattened.push({
           ...topic,
           unitOrModule: group.name,
-          order: currentOrder++
+          order: currentOrder++,
         });
       });
     });
@@ -129,7 +179,7 @@ export const syllabusService = {
     try {
       localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draft));
     } catch (e) {
-      console.warn('Failed to save draft to localStorage:', e);
+      console.warn("Failed to save draft to localStorage:", e);
     }
   },
 
@@ -150,5 +200,5 @@ export const syllabusService = {
    */
   clearDraft(): void {
     localStorage.removeItem(DRAFT_STORAGE_KEY);
-  }
+  },
 };

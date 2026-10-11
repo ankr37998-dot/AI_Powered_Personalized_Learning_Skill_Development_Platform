@@ -1,14 +1,14 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from "react";
 import {
   ExtractedTopic,
   RoadmapNode,
   SubjectUnitGroup,
   SyllabusDraft,
-  SyllabusFileMetadata
-} from '../types';
-import { SAMPLE_SYLLABUS_TEXT } from '../constants';
-import { geminiService } from '../services/geminiService';
-import { syllabusService } from '../services/syllabusService';
+  SyllabusFileMetadata,
+} from "../types";
+import { SAMPLE_SYLLABUS_TEXT } from "../constants";
+import { syllabusService } from "../services/syllabusService";
+import { googleAiService } from "../services/googleAiService";
 import {
   UploadCloud,
   FileText,
@@ -30,57 +30,61 @@ import {
   BookOpen,
   Edit3,
   X,
-  AlertTriangle
-} from 'lucide-react';
+  AlertTriangle,
+} from "lucide-react";
 
 interface SyllabusUploaderProps {
   onRoadmapGenerated: (newRoadmap: RoadmapNode[]) => void;
   onCancel: () => void;
 }
 
-type IngestionTab = 'upload' | 'manual';
+type IngestionTab = "upload" | "manual";
 
 export const SyllabusUploader: React.FC<SyllabusUploaderProps> = ({
   onRoadmapGenerated,
-  onCancel
+  onCancel,
 }) => {
   // Input Step States
-  const [activeTab, setActiveTab] = useState<IngestionTab>('upload');
+  const [activeTab, setActiveTab] = useState<IngestionTab>("upload");
   const [learningGoal, setLearningGoal] = useState(
-    'Pass University Backend Architecture Exam & Master Production Node.js'
+    "Pass University Backend Architecture Exam & Master Production Node.js",
   );
 
   // Option A (Upload) states
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [fileMetadata, setFileMetadata] = useState<SyllabusFileMetadata | null>(null);
-  const [fileTextContent, setFileTextContent] = useState<string>('');
+  const [fileMetadata, setFileMetadata] = useState<SyllabusFileMetadata | null>(
+    null,
+  );
+  const [fileTextContent, setFileTextContent] = useState<string>("");
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Option B (Manual Entry) states
-  const [manualSubjectName, setManualSubjectName] = useState('Module 1: Core System Architecture');
-  const [manualTopicInput, setManualTopicInput] = useState('');
+  const [manualSubjectName, setManualSubjectName] = useState(
+    "Module 1: Core System Architecture",
+  );
+  const [manualTopicInput, setManualTopicInput] = useState("");
   const [manualSubjects, setManualSubjects] = useState<
     { id: string; subject: string; topics: string[] }[]
   >([
     {
-      id: 'subj_1',
-      subject: 'Module 1: Architecture & Asynchronous Runtimes',
+      id: "subj_1",
+      subject: "Module 1: Architecture & Asynchronous Runtimes",
       topics: [
-        'Event loop mechanics: Timers, pending callbacks, poll, check, close phases',
-        'Microtasks (process.nextTick, Promise resolution) vs Macrotasks',
-        'Thread pool offloading with libuv (DNS, File I/O, Crypto)'
-      ]
+        "Event loop mechanics: Timers, pending callbacks, poll, check, close phases",
+        "Microtasks (process.nextTick, Promise resolution) vs Macrotasks",
+        "Thread pool offloading with libuv (DNS, File I/O, Crypto)",
+      ],
     },
     {
-      id: 'subj_2',
-      subject: 'Module 2: Memory & High-Throughput Streams',
+      id: "subj_2",
+      subject: "Module 2: Memory & High-Throughput Streams",
       topics: [
-        'Buffer allocation: Buffer.alloc vs Buffer.allocUnsafe and zero-filling safety',
-        'Stream pipeline mechanics: Readable, Writable, Transform, Duplex',
-        'Backpressure handling and drain events in high concurrency'
-      ]
-    }
+        "Buffer allocation: Buffer.alloc vs Buffer.allocUnsafe and zero-filling safety",
+        "Stream pipeline mechanics: Readable, Writable, Transform, Duplex",
+        "Backpressure handling and drain events in high concurrency",
+      ],
+    },
   ]);
 
   // Review & Extracted Topics State
@@ -109,7 +113,7 @@ export const SyllabusUploader: React.FC<SyllabusUploaderProps> = ({
     setErrorMessage(null);
     const validation = syllabusService.validateFile(file);
     if (!validation.isValid) {
-      setErrorMessage(validation.errorMessage || 'Invalid file.');
+      setErrorMessage(validation.errorMessage || "Invalid file.");
       return;
     }
 
@@ -119,12 +123,12 @@ export const SyllabusUploader: React.FC<SyllabusUploaderProps> = ({
     try {
       const text = await syllabusService.readTextFile(file);
       if (!text.trim()) {
-        setErrorMessage('The selected file contains no readable text.');
+        setErrorMessage("The selected file contains no readable text.");
         return;
       }
       setFileTextContent(text);
     } catch (err: any) {
-      setErrorMessage(err.message || 'Could not extract text from the file.');
+      setErrorMessage(err.message || "Could not extract text from the file.");
     }
   };
 
@@ -155,9 +159,9 @@ export const SyllabusUploader: React.FC<SyllabusUploaderProps> = ({
   const handleRemoveFile = () => {
     setSelectedFile(null);
     setFileMetadata(null);
-    setFileTextContent('');
+    setFileTextContent("");
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
   };
 
@@ -165,16 +169,22 @@ export const SyllabusUploader: React.FC<SyllabusUploaderProps> = ({
   const handleAddManualTopic = (subjectId: string) => {
     if (!manualTopicInput.trim()) return;
     setManualSubjects((prev) =>
-      prev.map((s) => (s.id === subjectId ? { ...s, topics: [...s.topics, manualTopicInput.trim()] } : s))
+      prev.map((s) =>
+        s.id === subjectId
+          ? { ...s, topics: [...s.topics, manualTopicInput.trim()] }
+          : s,
+      ),
     );
-    setManualTopicInput('');
+    setManualTopicInput("");
   };
 
   const handleRemoveManualTopic = (subjectId: string, topicIdx: number) => {
     setManualSubjects((prev) =>
       prev.map((s) =>
-        s.id === subjectId ? { ...s, topics: s.topics.filter((_, idx) => idx !== topicIdx) } : s
-      )
+        s.id === subjectId
+          ? { ...s, topics: s.topics.filter((_, idx) => idx !== topicIdx) }
+          : s,
+      ),
     );
   };
 
@@ -183,24 +193,26 @@ export const SyllabusUploader: React.FC<SyllabusUploaderProps> = ({
     const newSubj = {
       id: `subj_${Date.now()}`,
       subject: manualSubjectName.trim(),
-      topics: []
+      topics: [],
     };
     setManualSubjects((prev) => [...prev, newSubj]);
-    setManualSubjectName('');
+    setManualSubjectName("");
   };
 
   const handleRemoveManualSubject = (subjectId: string) => {
     setManualSubjects((prev) => prev.filter((s) => s.id !== subjectId));
   };
 
-  // Run Vertex AI Topic Extraction
+  // Prepare syllabus topics for review without an external model
   const handleRunExtraction = async () => {
     setErrorMessage(null);
-    let rawInputToProcess = '';
+    let rawInputToProcess = "";
 
-    if (activeTab === 'upload') {
+    if (activeTab === "upload") {
       if (!fileTextContent.trim()) {
-        setErrorMessage('Please upload a valid syllabus file (.txt, .md, .pdf) or paste syllabus text.');
+        setErrorMessage(
+          "Please upload a valid syllabus file (.txt, .md, .pdf) or paste syllabus text.",
+        );
         return;
       }
       rawInputToProcess = fileTextContent;
@@ -208,33 +220,50 @@ export const SyllabusUploader: React.FC<SyllabusUploaderProps> = ({
       // Manual mode aggregation
       const hasTopics = manualSubjects.some((s) => s.topics.length > 0);
       if (!hasTopics) {
-        setErrorMessage('Please add at least one subject with topics before extracting.');
+        setErrorMessage(
+          "Please add at least one subject with topics before extracting.",
+        );
         return;
       }
       rawInputToProcess = manualSubjects
-        .map((s) => `${s.subject}:\n${s.topics.map((t) => `- ${t}`).join('\n')}`)
-        .join('\n\n');
+        .map(
+          (s) => `${s.subject}:\n${s.topics.map((t) => `- ${t}`).join("\n")}`,
+        )
+        .join("\n\n");
     }
 
     setIsProcessing(true);
-    setUploadProgress(20);
-
-    const progressTimer = setInterval(() => {
-      setUploadProgress((p) => (p < 85 ? p + 15 : p));
-    }, 350);
 
     try {
-      const extracted = await geminiService.extractTopicsFromSyllabus(rawInputToProcess);
+      let extracted: ExtractedTopic[];
+      if (activeTab === "manual") {
+        let order = 0;
+        extracted = manualSubjects.flatMap((subject) =>
+          subject.topics.map((title) => ({
+            id: `topic_${++order}`,
+            title,
+            unitOrModule: subject.subject,
+            description: "Added manually by the learner.",
+            confidence: "high" as const,
+            prerequisites: [],
+            order,
+          })),
+        );
+      } else {
+        extracted =
+          await googleAiService.extractSyllabusTopics(rawInputToProcess);
+      }
+
       const grouped = syllabusService.groupTopicsBySubject(extracted);
       setUploadProgress(100);
       setGroups(grouped);
-      showToast('Topics extracted successfully with Vertex AI Gemini 2.5 Flash');
+      showToast("Topics are ready for review");
     } catch (err: any) {
       setErrorMessage(
-        err.message || 'AI topic extraction failed. You can switch to Manual Entry fallback.'
+        err.message ||
+          "Gemini could not extract topics. You can add them manually.",
       );
     } finally {
-      clearInterval(progressTimer);
       setIsProcessing(false);
     }
   };
@@ -243,14 +272,16 @@ export const SyllabusUploader: React.FC<SyllabusUploaderProps> = ({
   const handleToggleExpandGroup = (groupIdx: number) => {
     if (!groups) return;
     setGroups(
-      groups.map((g, idx) => (idx === groupIdx ? { ...g, isExpanded: !g.isExpanded } : g))
+      groups.map((g, idx) =>
+        idx === groupIdx ? { ...g, isExpanded: !g.isExpanded } : g,
+      ),
     );
   };
 
   const handleUpdateGroupName = (groupIdx: number, newName: string) => {
     if (!groups) return;
     setGroups(
-      groups.map((g, idx) => (idx === groupIdx ? { ...g, name: newName } : g))
+      groups.map((g, idx) => (idx === groupIdx ? { ...g, name: newName } : g)),
     );
   };
 
@@ -262,14 +293,14 @@ export const SyllabusUploader: React.FC<SyllabusUploaderProps> = ({
       topics: [
         {
           id: `topic_${Date.now()}`,
-          title: 'New Topic Title',
+          title: "New Topic Title",
           unitOrModule: `New Subject Unit ${groups.length + 1}`,
-          description: 'Description of expected skill competency',
-          confidence: 'high',
+          description: "Description of expected skill competency",
+          confidence: "high",
           prerequisites: [],
-          order: 1
-        }
-      ]
+          order: 1,
+        },
+      ],
     };
     setGroups([...groups, newGroup]);
   };
@@ -284,23 +315,25 @@ export const SyllabusUploader: React.FC<SyllabusUploaderProps> = ({
     const target = groups[groupIdx];
     const newTopic: ExtractedTopic = {
       id: `topic_${Date.now()}`,
-      title: 'New Added Topic',
+      title: "New Added Topic",
       unitOrModule: target.name,
-      description: 'Learner-added syllabus topic',
-      confidence: 'high',
+      description: "Learner-added syllabus topic",
+      confidence: "high",
       prerequisites: [],
-      order: target.topics.length + 1
+      order: target.topics.length + 1,
     };
 
     setGroups(
-      groups.map((g, idx) => (idx === groupIdx ? { ...g, topics: [...g.topics, newTopic] } : g))
+      groups.map((g, idx) =>
+        idx === groupIdx ? { ...g, topics: [...g.topics, newTopic] } : g,
+      ),
     );
   };
 
   const handleUpdateTopicInGroup = (
     groupIdx: number,
     topicIdx: number,
-    updated: Partial<ExtractedTopic>
+    updated: Partial<ExtractedTopic>,
   ) => {
     if (!groups) return;
     setGroups(
@@ -308,9 +341,11 @@ export const SyllabusUploader: React.FC<SyllabusUploaderProps> = ({
         if (gIdx !== groupIdx) return g;
         return {
           ...g,
-          topics: g.topics.map((t, tIdx) => (tIdx === topicIdx ? { ...t, ...updated } : t))
+          topics: g.topics.map((t, tIdx) =>
+            tIdx === topicIdx ? { ...t, ...updated } : t,
+          ),
         };
-      })
+      }),
     );
   };
 
@@ -321,16 +356,20 @@ export const SyllabusUploader: React.FC<SyllabusUploaderProps> = ({
         if (gIdx !== groupIdx) return g;
         return {
           ...g,
-          topics: g.topics.filter((_, tIdx) => tIdx !== topicIdx)
+          topics: g.topics.filter((_, tIdx) => tIdx !== topicIdx),
         };
-      })
+      }),
     );
   };
 
-  const handleMoveTopic = (groupIdx: number, topicIdx: number, direction: 'up' | 'down') => {
+  const handleMoveTopic = (
+    groupIdx: number,
+    topicIdx: number,
+    direction: "up" | "down",
+  ) => {
     if (!groups) return;
     const group = groups[groupIdx];
-    const newIdx = direction === 'up' ? topicIdx - 1 : topicIdx + 1;
+    const newIdx = direction === "up" ? topicIdx - 1 : topicIdx + 1;
     if (newIdx < 0 || newIdx >= group.topics.length) return;
 
     const reordered = [...group.topics];
@@ -339,7 +378,9 @@ export const SyllabusUploader: React.FC<SyllabusUploaderProps> = ({
     reordered[newIdx] = temp;
 
     setGroups(
-      groups.map((g, gIdx) => (gIdx === groupIdx ? { ...g, topics: reordered } : g))
+      groups.map((g, gIdx) =>
+        gIdx === groupIdx ? { ...g, topics: reordered } : g,
+      ),
     );
   };
 
@@ -352,11 +393,11 @@ export const SyllabusUploader: React.FC<SyllabusUploaderProps> = ({
       learningGoal,
       sourceType: activeTab,
       fileName: fileMetadata?.name,
-      groups
+      groups,
     };
     syllabusService.saveDraft(draft);
     setHasSavedDraft(true);
-    showToast('Syllabus draft saved. You can restore it anytime.');
+    showToast("Syllabus draft saved. You can restore it anytime.");
   };
 
   const handleRestoreDraft = () => {
@@ -364,7 +405,9 @@ export const SyllabusUploader: React.FC<SyllabusUploaderProps> = ({
     if (!draft) return;
     setLearningGoal(draft.learningGoal || learningGoal);
     setGroups(draft.groups);
-    showToast(`Restored draft from ${new Date(draft.savedAt).toLocaleDateString()}`);
+    showToast(
+      `Restored draft from ${new Date(draft.savedAt).toLocaleDateString()}`,
+    );
   };
 
   // Final Confirmation & Roadmap Generation
@@ -372,7 +415,9 @@ export const SyllabusUploader: React.FC<SyllabusUploaderProps> = ({
     if (!groups || groups.length === 0) return;
     const flat = syllabusService.flattenGroups(groups);
     if (flat.length === 0) {
-      setErrorMessage('Please ensure there is at least one topic before proceeding.');
+      setErrorMessage(
+        "Please ensure there is at least one topic before proceeding.",
+      );
       return;
     }
 
@@ -382,9 +427,9 @@ export const SyllabusUploader: React.FC<SyllabusUploaderProps> = ({
         topicId: topic.id,
         title: topic.title,
         unit: topic.unitOrModule,
-        status: index === 0 ? 'available' : 'locked',
+        status: index === 0 ? "available" : "locked",
         order: index + 1,
-        prerequisitesMet: index === 0
+        prerequisitesMet: index === 0,
       };
     });
 
@@ -393,9 +438,15 @@ export const SyllabusUploader: React.FC<SyllabusUploaderProps> = ({
   };
 
   // Count total topics and uncertain topics
-  const totalTopicsCount = groups ? groups.reduce((acc, g) => acc + g.topics.length, 0) : 0;
+  const totalTopicsCount = groups
+    ? groups.reduce((acc, g) => acc + g.topics.length, 0)
+    : 0;
   const uncertainTopicsCount = groups
-    ? groups.reduce((acc, g) => acc + g.topics.filter((t) => t.confidence === 'uncertain').length, 0)
+    ? groups.reduce(
+        (acc, g) =>
+          acc + g.topics.filter((t) => t.confidence === "uncertain").length,
+        0,
+      )
     : 0;
 
   return (
@@ -417,12 +468,14 @@ export const SyllabusUploader: React.FC<SyllabusUploaderProps> = ({
               <span>Module 2: Syllabus Ingestion & Topic Review</span>
             </div>
             <h1 className="text-2xl font-bold text-white mt-1">
-              {groups ? 'Review & Edit Extracted Topics' : 'Ingest Course Syllabus & Learning Goals'}
+              {groups
+                ? "Review & Edit Extracted Topics"
+                : "Ingest Course Syllabus & Learning Goals"}
             </h1>
             <p className="text-xs text-slate-300 mt-0.5 max-w-2xl">
               {groups
-                ? 'Review extracted subjects, edit terminology, reorder modules, and flag uncertain topic mappings before generating your verified roadmap.'
-                : 'Upload your course syllabus document (PDF/TXT) or manually enter topics. Our Vertex AI engine will extract competencies and sequence prerequisites.'}
+                ? "Review extracted subjects, edit terminology, reorder modules, and flag uncertain topic mappings before generating your verified roadmap."
+                : "Upload a syllabus for Gemini topic extraction or enter subjects and topics manually. Review and edit topics before continuing."}
             </p>
           </div>
 
@@ -454,7 +507,10 @@ export const SyllabusUploader: React.FC<SyllabusUploaderProps> = ({
             <AlertCircle className="w-5 h-5 flex-shrink-0" />
             <span>{errorMessage}</span>
           </div>
-          <button onClick={() => setErrorMessage(null)} className="text-rose-400 hover:text-rose-200">
+          <button
+            onClick={() => setErrorMessage(null)}
+            className="text-rose-400 hover:text-rose-200"
+          >
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -488,13 +544,13 @@ export const SyllabusUploader: React.FC<SyllabusUploaderProps> = ({
                 <button
                   type="button"
                   onClick={() => {
-                    setActiveTab('upload');
+                    setActiveTab("upload");
                     setErrorMessage(null);
                   }}
                   className={`px-3 py-1 text-xs rounded-lg font-medium transition ${
-                    activeTab === 'upload'
-                      ? 'bg-indigo-600 text-white shadow-sm'
-                      : 'text-slate-400 hover:text-white'
+                    activeTab === "upload"
+                      ? "bg-indigo-600 text-white shadow-sm"
+                      : "text-slate-400 hover:text-white"
                   }`}
                 >
                   Option A: Upload File
@@ -502,13 +558,13 @@ export const SyllabusUploader: React.FC<SyllabusUploaderProps> = ({
                 <button
                   type="button"
                   onClick={() => {
-                    setActiveTab('manual');
+                    setActiveTab("manual");
                     setErrorMessage(null);
                   }}
                   className={`px-3 py-1 text-xs rounded-lg font-medium transition ${
-                    activeTab === 'manual'
-                      ? 'bg-indigo-600 text-white shadow-sm'
-                      : 'text-slate-400 hover:text-white'
+                    activeTab === "manual"
+                      ? "bg-indigo-600 text-white shadow-sm"
+                      : "text-slate-400 hover:text-white"
                   }`}
                 >
                   Option B: Manual Entry
@@ -518,7 +574,7 @@ export const SyllabusUploader: React.FC<SyllabusUploaderProps> = ({
           </div>
 
           {/* OPTION A: FILE UPLOAD */}
-          {activeTab === 'upload' && (
+          {activeTab === "upload" && (
             <div className="space-y-4">
               <input
                 ref={fileInputRef}
@@ -536,17 +592,20 @@ export const SyllabusUploader: React.FC<SyllabusUploaderProps> = ({
                   onClick={() => fileInputRef.current?.click()}
                   className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition ${
                     isDragOver
-                      ? 'border-indigo-400 bg-indigo-950/30'
-                      : 'border-slate-700 hover:border-slate-500 bg-slate-900/50'
+                      ? "border-indigo-400 bg-indigo-950/30"
+                      : "border-slate-700 hover:border-slate-500 bg-slate-900/50"
                   }`}
                 >
                   <UploadCloud className="w-10 h-10 text-indigo-400 mx-auto mb-3" />
                   <div className="text-sm font-semibold text-white">
-                    Drag and drop syllabus file here, or{' '}
-                    <span className="text-indigo-400 hover:underline">browse files</span>
+                    Drag and drop syllabus file here, or{" "}
+                    <span className="text-indigo-400 hover:underline">
+                      browse files
+                    </span>
                   </div>
                   <p className="text-xs text-slate-400 mt-1">
-                    Supported formats: Plain Text (.txt), Markdown (.md), PDF (.pdf). Maximum size: 5MB.
+                    Supported formats: Plain Text (.txt), Markdown (.md), PDF
+                    (.pdf). Maximum size: 5MB.
                   </p>
                 </div>
               ) : (
@@ -556,9 +615,14 @@ export const SyllabusUploader: React.FC<SyllabusUploaderProps> = ({
                       <FileCheck className="w-6 h-6" />
                     </div>
                     <div>
-                      <div className="text-xs font-bold text-white">{fileMetadata?.name}</div>
+                      <div className="text-xs font-bold text-white">
+                        {fileMetadata?.name}
+                      </div>
                       <div className="text-[11px] text-slate-400">
-                        {fileMetadata ? `${(fileMetadata.size / 1024).toFixed(1)} KB` : ''} • Ready for AI extraction
+                        {fileMetadata
+                          ? `${(fileMetadata.size / 1024).toFixed(1)} KB`
+                          : ""}{" "}
+                        • Ready for AI extraction
                       </div>
                     </div>
                   </div>
@@ -584,18 +648,25 @@ export const SyllabusUploader: React.FC<SyllabusUploaderProps> = ({
 
               {/* Preset syllabus loader */}
               <div className="flex items-center justify-between pt-2 text-xs">
-                <span className="text-slate-400">Don't have a syllabus file ready?</span>
+                <span className="text-slate-400">
+                  Don't have a syllabus file ready?
+                </span>
                 <button
                   type="button"
                   onClick={() => {
                     setFileTextContent(SAMPLE_SYLLABUS_TEXT);
                     setFileMetadata({
-                      name: 'CS-302_NodeJS_Internals.txt',
+                      name: "CS-302_NodeJS_Internals.txt",
                       size: SAMPLE_SYLLABUS_TEXT.length,
-                      type: 'text/plain',
-                      lastModified: Date.now()
+                      type: "text/plain",
+                      lastModified: Date.now(),
                     });
-                    setSelectedFile(new File([SAMPLE_SYLLABUS_TEXT], 'CS-302_NodeJS_Internals.txt'));
+                    setSelectedFile(
+                      new File(
+                        [SAMPLE_SYLLABUS_TEXT],
+                        "CS-302_NodeJS_Internals.txt",
+                      ),
+                    );
                   }}
                   className="text-cyan-400 hover:underline font-medium"
                 >
@@ -618,11 +689,15 @@ export const SyllabusUploader: React.FC<SyllabusUploaderProps> = ({
           )}
 
           {/* OPTION B: MANUAL SUBJECT & TOPIC ENTRY */}
-          {activeTab === 'manual' && (
+          {activeTab === "manual" && (
             <div className="space-y-4">
               <div className="p-3 rounded-xl bg-slate-900 border border-slate-700 text-xs text-slate-300">
-                <div className="font-semibold text-cyan-400 mb-1">Manual Entry Instructions:</div>
-                Define subjects/modules and add topics underneath each subject. You can edit, remove, and reorder them later in the Review screen.
+                <div className="font-semibold text-cyan-400 mb-1">
+                  Manual Entry Instructions:
+                </div>
+                Define subjects/modules and add topics underneath each subject.
+                You can edit, remove, and reorder them later in the Review
+                screen.
               </div>
 
               {/* Add New Subject Input */}
@@ -647,9 +722,14 @@ export const SyllabusUploader: React.FC<SyllabusUploaderProps> = ({
               {/* List of Manual Subjects with their Topics */}
               <div className="space-y-3">
                 {manualSubjects.map((subj) => (
-                  <div key={subj.id} className="bg-slate-900 border border-slate-700/80 rounded-xl p-4 space-y-3">
+                  <div
+                    key={subj.id}
+                    className="bg-slate-900 border border-slate-700/80 rounded-xl p-4 space-y-3"
+                  >
                     <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                      <div className="font-bold text-white text-xs">{subj.subject}</div>
+                      <div className="font-bold text-white text-xs">
+                        {subj.subject}
+                      </div>
                       <button
                         type="button"
                         onClick={() => handleRemoveManualSubject(subj.id)}
@@ -662,7 +742,9 @@ export const SyllabusUploader: React.FC<SyllabusUploaderProps> = ({
                     {/* Topics under this subject */}
                     <ul className="space-y-1.5">
                       {subj.topics.length === 0 ? (
-                        <li className="text-slate-500 text-[11px] italic">No topics added yet.</li>
+                        <li className="text-slate-500 text-[11px] italic">
+                          No topics added yet.
+                        </li>
                       ) : (
                         subj.topics.map((t, idx) => (
                           <li
@@ -672,7 +754,9 @@ export const SyllabusUploader: React.FC<SyllabusUploaderProps> = ({
                             <span>• {t}</span>
                             <button
                               type="button"
-                              onClick={() => handleRemoveManualTopic(subj.id, idx)}
+                              onClick={() =>
+                                handleRemoveManualTopic(subj.id, idx)
+                              }
                               className="text-slate-500 hover:text-rose-400 ml-2"
                             >
                               <X className="w-3 h-3" />
@@ -688,7 +772,7 @@ export const SyllabusUploader: React.FC<SyllabusUploaderProps> = ({
                         type="text"
                         placeholder="Add topic to this module..."
                         onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
+                          if (e.key === "Enter") {
                             e.preventDefault();
                             handleAddManualTopic(subj.id);
                           }
@@ -712,7 +796,11 @@ export const SyllabusUploader: React.FC<SyllabusUploaderProps> = ({
 
           {/* Action Footer for Step 1 */}
           <div className="flex items-center justify-between pt-4 border-t border-slate-700">
-            <button type="button" onClick={onCancel} className="text-xs text-slate-400 hover:text-white">
+            <button
+              type="button"
+              onClick={onCancel}
+              className="text-xs text-slate-400 hover:text-white"
+            >
               Back to Dashboard
             </button>
 
@@ -725,12 +813,12 @@ export const SyllabusUploader: React.FC<SyllabusUploaderProps> = ({
               {isProcessing ? (
                 <>
                   <RefreshCw className="w-4 h-4 animate-spin" />
-                  <span>Vertex AI Extracting ({uploadProgress}%)...</span>
+                  <span>Preparing topics ({uploadProgress}%)...</span>
                 </>
               ) : (
                 <>
                   <Sparkles className="w-4 h-4" />
-                  <span>Extract Topics & Continue to Review</span>
+                  <span>Prepare Topics & Continue to Review</span>
                 </>
               )}
             </button>
@@ -755,7 +843,8 @@ export const SyllabusUploader: React.FC<SyllabusUploaderProps> = ({
                 )}
               </div>
               <p className="text-xs text-slate-400 mt-0.5">
-                Edit titles, drag/reorder topics, resolve uncertain mappings, or add new subjects.
+                Edit titles, drag/reorder topics, resolve uncertain mappings, or
+                add new subjects.
               </p>
             </div>
 
@@ -804,7 +893,9 @@ export const SyllabusUploader: React.FC<SyllabusUploaderProps> = ({
                     <input
                       type="text"
                       value={group.name}
-                      onChange={(e) => handleUpdateGroupName(groupIdx, e.target.value)}
+                      onChange={(e) =>
+                        handleUpdateGroupName(groupIdx, e.target.value)
+                      }
                       className="bg-transparent text-sm font-bold text-white border-b border-transparent hover:border-slate-600 focus:border-indigo-500 focus:outline-none w-full"
                     />
                   </div>
@@ -841,15 +932,15 @@ export const SyllabusUploader: React.FC<SyllabusUploaderProps> = ({
                       </div>
                     ) : (
                       group.topics.map((topic, topicIdx) => {
-                        const isUncertain = topic.confidence === 'uncertain';
+                        const isUncertain = topic.confidence === "uncertain";
 
                         return (
                           <div
                             key={topic.id}
                             className={`rounded-xl p-3.5 border transition ${
                               isUncertain
-                                ? 'bg-amber-950/20 border-amber-500/40'
-                                : 'bg-slate-900 border-slate-800'
+                                ? "bg-amber-950/20 border-amber-500/40"
+                                : "bg-slate-900 border-slate-800"
                             }`}
                           >
                             <div className="flex items-start justify-between gap-3">
@@ -859,9 +950,13 @@ export const SyllabusUploader: React.FC<SyllabusUploaderProps> = ({
                                     type="text"
                                     value={topic.title}
                                     onChange={(e) =>
-                                      handleUpdateTopicInGroup(groupIdx, topicIdx, {
-                                        title: e.target.value
-                                      })
+                                      handleUpdateTopicInGroup(
+                                        groupIdx,
+                                        topicIdx,
+                                        {
+                                          title: e.target.value,
+                                        },
+                                      )
                                     }
                                     placeholder="Topic title"
                                     className="font-bold text-xs text-white bg-transparent border-b border-slate-700 hover:border-slate-500 focus:border-indigo-500 focus:outline-none w-full"
@@ -871,21 +966,31 @@ export const SyllabusUploader: React.FC<SyllabusUploaderProps> = ({
                                   <select
                                     value={topic.confidence}
                                     onChange={(e) =>
-                                      handleUpdateTopicInGroup(groupIdx, topicIdx, {
-                                        confidence: e.target.value as any
-                                      })
+                                      handleUpdateTopicInGroup(
+                                        groupIdx,
+                                        topicIdx,
+                                        {
+                                          confidence: e.target.value as any,
+                                        },
+                                      )
                                     }
                                     className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full border bg-slate-900 ${
-                                      topic.confidence === 'high'
-                                        ? 'border-emerald-500 text-emerald-400'
-                                        : topic.confidence === 'medium'
-                                        ? 'border-indigo-500 text-indigo-400'
-                                        : 'border-amber-500 text-amber-300'
+                                      topic.confidence === "high"
+                                        ? "border-emerald-500 text-emerald-400"
+                                        : topic.confidence === "medium"
+                                          ? "border-indigo-500 text-indigo-400"
+                                          : "border-amber-500 text-amber-300"
                                     }`}
                                   >
-                                    <option value="high">High Confidence</option>
-                                    <option value="medium">Medium Confidence</option>
-                                    <option value="uncertain">Uncertain Mapping</option>
+                                    <option value="high">
+                                      High Confidence
+                                    </option>
+                                    <option value="medium">
+                                      Medium Confidence
+                                    </option>
+                                    <option value="uncertain">
+                                      Uncertain Mapping
+                                    </option>
                                   </select>
                                 </div>
 
@@ -893,9 +998,13 @@ export const SyllabusUploader: React.FC<SyllabusUploaderProps> = ({
                                   type="text"
                                   value={topic.description}
                                   onChange={(e) =>
-                                    handleUpdateTopicInGroup(groupIdx, topicIdx, {
-                                      description: e.target.value
-                                    })
+                                    handleUpdateTopicInGroup(
+                                      groupIdx,
+                                      topicIdx,
+                                      {
+                                        description: e.target.value,
+                                      },
+                                    )
                                   }
                                   placeholder="Topic summary / key competency"
                                   className="text-xs text-slate-300 bg-transparent border-b border-slate-800 hover:border-slate-600 focus:border-indigo-500 focus:outline-none w-full"
@@ -905,7 +1014,9 @@ export const SyllabusUploader: React.FC<SyllabusUploaderProps> = ({
                                   <div className="text-[11px] text-amber-300/90 flex items-center space-x-1 pt-1">
                                     <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
                                     <span>
-                                      Uncertain mapping: AI detected ambiguous terminology. Please verify or correct the title.
+                                      Uncertain mapping: AI detected ambiguous
+                                      terminology. Please verify or correct the
+                                      title.
                                     </span>
                                   </div>
                                 )}
@@ -916,7 +1027,9 @@ export const SyllabusUploader: React.FC<SyllabusUploaderProps> = ({
                                 <button
                                   type="button"
                                   disabled={topicIdx === 0}
-                                  onClick={() => handleMoveTopic(groupIdx, topicIdx, 'up')}
+                                  onClick={() =>
+                                    handleMoveTopic(groupIdx, topicIdx, "up")
+                                  }
                                   className="p-1 hover:text-white disabled:opacity-30"
                                   title="Move Up"
                                 >
@@ -924,8 +1037,12 @@ export const SyllabusUploader: React.FC<SyllabusUploaderProps> = ({
                                 </button>
                                 <button
                                   type="button"
-                                  disabled={topicIdx === group.topics.length - 1}
-                                  onClick={() => handleMoveTopic(groupIdx, topicIdx, 'down')}
+                                  disabled={
+                                    topicIdx === group.topics.length - 1
+                                  }
+                                  onClick={() =>
+                                    handleMoveTopic(groupIdx, topicIdx, "down")
+                                  }
                                   className="p-1 hover:text-white disabled:opacity-30"
                                   title="Move Down"
                                 >
@@ -933,7 +1050,12 @@ export const SyllabusUploader: React.FC<SyllabusUploaderProps> = ({
                                 </button>
                                 <button
                                   type="button"
-                                  onClick={() => handleRemoveTopicFromGroup(groupIdx, topicIdx)}
+                                  onClick={() =>
+                                    handleRemoveTopicFromGroup(
+                                      groupIdx,
+                                      topicIdx,
+                                    )
+                                  }
                                   className="p-1 hover:text-rose-400"
                                   title="Remove Topic"
                                 >

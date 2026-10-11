@@ -9,10 +9,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "lucide-react": "latest",
+    "pdfjs-dist": "^6.4.299",
     "react": "latest",
-    "react-dom": "latest",
-    "@google/genai": "latest",
-    "lucide-react": "latest"
+    "react-dom": "latest"
   },
   "devDependencies": {
     "@types/node": "latest",

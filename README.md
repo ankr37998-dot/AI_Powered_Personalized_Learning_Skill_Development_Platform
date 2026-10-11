@@ -1,53 +1,46 @@
-# Vertex AI Studio Frontend App with Node.js Backend
+# CogniPath
 
-This repository contains a frontend and a Node.js backend, designed to run together.
-The backend acts as a proxy, handling Google Cloud API calls.
+CogniPath is a student learning platform with an Express API, MongoDB persistence, and Gemini Developer API-powered roadmap generation, syllabus extraction, resource verification, and streaming tutoring.
 
-This project is intended for demonstration and prototyping purposes only.
-It is not intended for use in a production environment.
+## Requirements
 
-## Prerequisites
+- Node.js 20 or later
+- npm
+- MongoDB Atlas access, or a local MongoDB server
 
-To run this application locally, you need:
+## Setup
 
-*   **[Google Cloud SDK / gcloud CLI](https://cloud.google.com/sdk/docs/install)**: Follow the instructions to install the SDK.
+Install dependencies from the repository root:
 
-*   **gcloud Initialization**:
-    *   Initialize the gcloud CLI:
-        ```bash
-        gcloud init
-        ```
-    *   Authenticate for Application Default Credentials (needed to call Google Cloud APIs):
-        ```bash
-        gcloud auth application-default login
-        ```
+```sh
+npm install
+```
 
-*   **Node.js and npm**: Ensure you have Node.js and its package manager, `npm`, installed on your machine.
+After copying `backend/.env.example` to `backend/.env`, securely enter a newly created Gemini API key with:
 
-## Project Structure
+```powershell
+.\backend\configure-google-key.ps1
+```
 
-The project is organized into two main directories:
+Create the key for the Gemini Developer API in Google AI Studio. Gemini API keys usually begin with `AIza`. The key is entered using a masked terminal prompt and written only to the Git-ignored backend env file. Restart the backend after saving it.
 
-*   `frontend/`: Contains the Frontend application code.
-*   `backend/`: Contains the Node.js/Express server code to proxy Google Cloud API calls.
+The backend reads `backend/.env`. It is ignored by Git. Copy `backend/.env.example` to `backend/.env` and configure `MONGODB_URI`, `GOOGLE_GEMINI_API_KEY`, and `PORT`. The default Gemini model and API base URL can be changed with `GOOGLE_GEMINI_MODEL` and `GOOGLE_GEMINI_API_BASE_URL`.
 
-## Backend Environment Variables
+To use the Atlas cluster, provide its connection string. For a MongoDB server running on this machine, use:
 
-The `backend/.env.local` file is automatically generated when you download this application.
-It contains essential Google Cloud environment variables pre-configured based on your project settings at the time of download.
+```env
+MONGODB_URI=mongodb://127.0.0.1:27017/cognipath_ai
+PORT=5000
+```
 
-The variables set in `backend/.env.local` are:
-*   `API_BACKEND_PORT`: The port the backend API server listens on (e.g., `5000`).
-*   `API_PAYLOAD_MAX_SIZE`: The maximum size of the request payload accepted by the backend server (e.g., `5mb`).
-*   `GOOGLE_CLOUD_LOCATION`: The Google Cloud region associated with your project.
-*   `GOOGLE_CLOUD_PROJECT`: Your Google Cloud Project ID.
+For Atlas, ensure the cluster's network access rules allow your current IP address. Never commit `backend/.env` or share its credentials. The Gemini key is sent only from the backend to Google's Gemini Developer API; do not put it in frontend config.
 
-**Note:** These variables are automatically populated during the download process.
-You can modify the values in `backend/.env.local` if you need to change them.
+To provision the first administrator, run `backend/configure-admin-bootstrap.ps1`, restart the backend, then run `backend/bootstrap-admin.ps1`. The first script generates a one-time secret directly into the ignored backend env file; the second prompts for the administrator's name, email, and password. After creation, sign in from the normal login screen; the API refuses to create another active administrator.
 
-## Installation and Running the App
+Start the frontend and database-backed API together:
 
-To install dependencies and run your Google Cloud Vertex AI Studio App locally, execute the following command:
+```sh
+npm run dev
+```
 
-```bash
-npm install && npm run dev
+The frontend runs through Vite and the API listens on `http://localhost:5000`. The API health endpoint is `http://localhost:5000/api/health`.

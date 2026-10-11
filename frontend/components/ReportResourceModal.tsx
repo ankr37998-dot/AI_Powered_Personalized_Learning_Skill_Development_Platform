@@ -1,46 +1,55 @@
-import React, { useState } from 'react';
-import { LearningResource, ReportedResourceIssue } from '../types';
-import { storageService } from '../services/storageService';
-import { Flag, X, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import React, { useState } from "react";
+import { LearningResource, ReportedResourceIssue } from "../types";
+import { Flag, X, AlertTriangle, CheckCircle2 } from "lucide-react";
 
 interface ReportResourceModalProps {
   resource: LearningResource | null;
   studentName: string;
   onClose: () => void;
-  onReportSubmitted: () => void;
+  onReportSubmitted: (
+    report: Pick<
+      ReportedResourceIssue,
+      "resourceId" | "reason" | "studentNotes"
+    >,
+  ) => Promise<void>;
 }
 
 export const ReportResourceModal: React.FC<ReportResourceModalProps> = ({
   resource,
   studentName,
   onClose,
-  onReportSubmitted
+  onReportSubmitted,
 }) => {
   if (!resource) return null;
 
-  const [reason, setReason] = useState<ReportedResourceIssue['reason']>('outdated_api');
-  const [studentNotes, setStudentNotes] = useState('');
+  const [reason, setReason] =
+    useState<ReportedResourceIssue["reason"]>("outdated_api");
+  const [studentNotes, setStudentNotes] = useState("");
   const [isDone, setIsDone] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const issue: ReportedResourceIssue = {
-      id: `rep_${Date.now()}`,
-      resourceId: resource.id,
-      resourceTitle: resource.title,
-      reportedBy: studentName || 'Student Learner',
-      reportedAt: new Date().toISOString(),
-      reason,
-      studentNotes: studentNotes.trim() || 'No additional comment provided.',
-      status: 'pending_review'
-    };
-
-    storageService.addReportedIssue(issue);
-    setIsDone(true);
-    setTimeout(() => {
-      onReportSubmitted();
-      onClose();
-    }, 1200);
+    setIsSubmitting(true);
+    setErrorMessage(null);
+    try {
+      await onReportSubmitted({
+        resourceId: resource.id,
+        reason,
+        studentNotes: studentNotes.trim() || "No additional comment provided.",
+      });
+      setIsDone(true);
+      setTimeout(onClose, 1200);
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Report could not be submitted.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -52,12 +61,19 @@ export const ReportResourceModal: React.FC<ReportResourceModalProps> = ({
               <Flag className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-white">Report Resource or Broken Link</h2>
-              <p className="text-xs text-slate-400">Directly alerts administrators for content audit.</p>
+              <h2 className="text-base font-bold text-white">
+                Report Resource or Broken Link
+              </h2>
+              <p className="text-xs text-slate-400">
+                Directly alerts administrators for content audit.
+              </p>
             </div>
           </div>
 
-          <button onClick={onClose} className="text-slate-400 hover:text-white p-1">
+          <button
+            onClick={onClose}
+            className="text-slate-400 hover:text-white p-1"
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -65,27 +81,51 @@ export const ReportResourceModal: React.FC<ReportResourceModalProps> = ({
         {isDone ? (
           <div className="p-6 text-center space-y-2">
             <CheckCircle2 className="w-10 h-10 text-emerald-400 mx-auto" />
-            <h3 className="text-sm font-bold text-white">Report Submitted to Administrator</h3>
-            <p className="text-xs text-slate-400">Thank you for keeping CogniPath resources technically accurate.</p>
+            <h3 className="text-sm font-bold text-white">
+              Report Submitted to Administrator
+            </h3>
+            <p className="text-xs text-slate-400">
+              Thank you for keeping CogniPath resources technically accurate.
+            </p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
+            {errorMessage && (
+              <div
+                role="alert"
+                className="p-3 rounded-lg bg-rose-950/40 border border-rose-500/40 text-rose-300 text-xs"
+              >
+                {errorMessage}
+              </div>
+            )}
             <div className="p-3 bg-slate-800 rounded-xl border border-slate-700 text-xs">
               <span className="text-slate-400">Target Resource:</span>
-              <div className="font-semibold text-white mt-0.5 truncate">{resource.title}</div>
+              <div className="font-semibold text-white mt-0.5 truncate">
+                {resource.title}
+              </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Issue Category</label>
+              <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">
+                Issue Category
+              </label>
               <select
                 value={reason}
                 onChange={(e) => setReason(e.target.value as any)}
                 className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white"
               >
-                <option value="broken_link">Broken Link / 404 / Video Removed</option>
-                <option value="outdated_api">Outdated API / Teaches Deprecated Code</option>
-                <option value="inaccurate_content">Inaccurate Technical Claims</option>
-                <option value="misleading_title">Misleading Title or Paywalled</option>
+                <option value="broken_link">
+                  Broken Link / 404 / Video Removed
+                </option>
+                <option value="outdated_api">
+                  Outdated API / Teaches Deprecated Code
+                </option>
+                <option value="inaccurate_content">
+                  Inaccurate Technical Claims
+                </option>
+                <option value="misleading_title">
+                  Misleading Title or Paywalled
+                </option>
               </select>
             </div>
 
@@ -112,9 +152,10 @@ export const ReportResourceModal: React.FC<ReportResourceModalProps> = ({
               </button>
               <button
                 type="submit"
+                disabled={isSubmitting}
                 className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white font-semibold rounded-xl text-xs transition"
               >
-                Submit Report
+                {isSubmitting ? "Submitting..." : "Submit Report"}
               </button>
             </div>
           </form>

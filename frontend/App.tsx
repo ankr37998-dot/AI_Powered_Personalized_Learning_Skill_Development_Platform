@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   UserProfile,
   RoadmapNode,
@@ -6,40 +6,34 @@ import {
   LearningResource,
   AssessmentAttempt,
   LearningRecommendation,
-  SavedRoadmap
-} from './types';
-import { storageService } from './services/storageService';
-import { authService } from './services/authService';
-import { verificationService } from './services/verificationService';
-import { apiClient } from './services/apiClient';
-import { themeService, ThemeMode } from './services/themeService';
-import { AuthPage } from './components/AuthPage';
-import { AppSidebar } from './components/AppSidebar';
-import { Topbar } from './components/Topbar';
-import { RoadmapView } from './components/RoadmapView';
+  SavedRoadmap,
+} from "./types";
+import { storageService } from "./services/storageService";
+import { authService } from "./services/authService";
+import { verificationService } from "./services/verificationService";
+import { apiClient } from "./services/apiClient";
+import { themeService, ThemeMode } from "./services/themeService";
+import { AuthPage } from "./components/AuthPage";
+import { AppSidebar } from "./components/AppSidebar";
+import { Topbar } from "./components/Topbar";
+import { RoadmapView } from "./components/RoadmapView";
 // Fix: Removed import of non-existent './components/RoadmapDirectoryModal' and inlined component below
-import { SyllabusUploader } from './components/SyllabusUploader';
-import { CreateRoadmapModal } from './components/CreateRoadmapModal';
-import { ResourceList } from './components/ResourceList';
-import { ResourceDetailModal } from './components/ResourceDetailModal';
-import { VerificationModal } from './components/VerificationModal';
-import { AiAssistantDrawer } from './components/AiAssistantDrawer';
-import { AssessmentQuiz } from './components/AssessmentQuiz';
-import { WeakTopicAnalysis } from './components/WeakTopicAnalysis';
-import { ProgressHistoryView } from './components/ProgressHistoryView';
-import { DocsViewer } from './components/DocsViewer';
-import { TopicDetailsModal } from './components/TopicDetailsModal';
-import { ReportResourceModal } from './components/ReportResourceModal';
-import { StudentProfileModal } from './components/StudentProfileModal';
-import { BackendStatusModal } from './components/BackendStatusModal';
-import {
-  Sparkles,
-  Compass,
-  X,
-  Plus,
-  ArrowRight,
-  Trash2
-} from 'lucide-react';
+import { SyllabusUploader } from "./components/SyllabusUploader";
+import { CreateRoadmapModal } from "./components/CreateRoadmapModal";
+import { ResourceList } from "./components/ResourceList";
+import { ResourceDetailModal } from "./components/ResourceDetailModal";
+import { VerificationModal } from "./components/VerificationModal";
+import { AiAssistantDrawer } from "./components/AiAssistantDrawer";
+import { AssessmentQuiz } from "./components/AssessmentQuiz";
+import { WeakTopicAnalysis } from "./components/WeakTopicAnalysis";
+import { ProgressHistoryView } from "./components/ProgressHistoryView";
+import { DocsViewer } from "./components/DocsViewer";
+import { TopicDetailsModal } from "./components/TopicDetailsModal";
+import { ReportResourceModal } from "./components/ReportResourceModal";
+import { StudentProfileModal } from "./components/StudentProfileModal";
+import { BackendStatusModal } from "./components/BackendStatusModal";
+import { AdminDashboard } from "./components/AdminDashboard";
+import { Sparkles, Compass, X, Plus, ArrowRight, Trash2 } from "lucide-react";
 
 // Fix: Inlined RoadmapDirectoryModal component to eliminate module specifier resolution failure
 interface RoadmapDirectoryModalProps {
@@ -57,7 +51,7 @@ const RoadmapDirectoryModal: React.FC<RoadmapDirectoryModalProps> = ({
   onSelectRoadmap,
   onCreateNew,
   onDeleteRoadmap,
-  onClose
+  onClose,
 }) => {
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
@@ -72,7 +66,8 @@ const RoadmapDirectoryModal: React.FC<RoadmapDirectoryModalProps> = ({
                 Developer Roadmaps Directory
               </h2>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                Switch between your active learning tracks or generate a new AI-powered developer roadmap.
+                Switch between your active learning tracks or generate a new
+                AI-powered developer roadmap.
               </p>
             </div>
           </div>
@@ -92,7 +87,8 @@ const RoadmapDirectoryModal: React.FC<RoadmapDirectoryModalProps> = ({
               Want to master a different technical competency?
             </span>
             <span className="text-[11px] text-slate-500 dark:text-slate-400">
-              Generate a custom roadmap for Android, React, Java, DSA, SQL, ML, or your university syllabus.
+              Generate a custom roadmap for Android, React, Java, DSA, SQL, ML,
+              or your university syllabus.
             </span>
           </div>
 
@@ -116,8 +112,13 @@ const RoadmapDirectoryModal: React.FC<RoadmapDirectoryModalProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {savedRoadmaps.map((r) => {
               const isActive = r.id === activeRoadmapId;
-              const completedCount = r.nodes.filter((n) => n.status === 'completed').length;
-              const pct = r.nodes.length > 0 ? Math.round((completedCount / r.nodes.length) * 100) : 0;
+              const completedCount = r.nodes.filter(
+                (n) => n.status === "completed",
+              ).length;
+              const pct =
+                r.nodes.length > 0
+                  ? Math.round((completedCount / r.nodes.length) * 100)
+                  : 0;
 
               return (
                 <div
@@ -128,14 +129,14 @@ const RoadmapDirectoryModal: React.FC<RoadmapDirectoryModalProps> = ({
                   }}
                   className={`p-4 rounded-xl border text-left cursor-pointer transition-all flex flex-col justify-between space-y-3 ${
                     isActive
-                      ? 'bg-indigo-50/50 dark:bg-indigo-950/30 border-indigo-500 ring-1 ring-indigo-500/40 shadow-sm'
-                      : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 shadow-xs'
+                      ? "bg-indigo-50/50 dark:bg-indigo-950/30 border-indigo-500 ring-1 ring-indigo-500/40 shadow-sm"
+                      : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 shadow-xs"
                   }`}
                 >
                   <div className="space-y-1">
                     <div className="flex items-center justify-between">
                       <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
-                        {r.category || 'Skill Path'}
+                        {r.category || "Skill Path"}
                       </span>
                       {isActive && (
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-600 text-white">
@@ -155,8 +156,12 @@ const RoadmapDirectoryModal: React.FC<RoadmapDirectoryModalProps> = ({
                   <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80 space-y-2">
                     <div className="space-y-1">
                       <div className="flex justify-between text-[11px] text-slate-500 dark:text-slate-400">
-                        <span>{completedCount} of {r.nodes.length} Topics</span>
-                        <span className="font-mono font-bold text-slate-700 dark:text-slate-300">{pct}%</span>
+                        <span>
+                          {completedCount} of {r.nodes.length} Topics
+                        </span>
+                        <span className="font-mono font-bold text-slate-700 dark:text-slate-300">
+                          {pct}%
+                        </span>
                       </div>
                       <div className="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
                         <div
@@ -168,7 +173,8 @@ const RoadmapDirectoryModal: React.FC<RoadmapDirectoryModalProps> = ({
 
                     <div className="flex items-center justify-between pt-1">
                       <span className="text-[10px] text-slate-400 font-mono">
-                        ~{r.totalEstimatedHours || r.nodes.length * 4}h estimated
+                        ~{r.totalEstimatedHours || r.nodes.length * 4}h
+                        estimated
                       </span>
 
                       <div className="flex items-center space-x-2">
@@ -187,7 +193,7 @@ const RoadmapDirectoryModal: React.FC<RoadmapDirectoryModalProps> = ({
                           </button>
                         )}
                         <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 flex items-center space-x-0.5">
-                          <span>{isActive ? 'Continue' : 'Switch'}</span>
+                          <span>{isActive ? "Continue" : "Switch"}</span>
                           <ArrowRight className="w-3.5 h-3.5" />
                         </span>
                       </div>
@@ -205,14 +211,16 @@ const RoadmapDirectoryModal: React.FC<RoadmapDirectoryModalProps> = ({
 
 export default function App() {
   // Theme State
-  const [currentTheme, setCurrentTheme] = useState<ThemeMode>(() => themeService.getInitialTheme());
+  const [currentTheme, setCurrentTheme] = useState<ThemeMode>(() =>
+    themeService.getInitialTheme(),
+  );
 
   useEffect(() => {
     themeService.applyTheme(currentTheme);
   }, [currentTheme]);
 
   const handleToggleTheme = () => {
-    setCurrentTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+    setCurrentTheme((prev) => (prev === "dark" ? "light" : "dark"));
   };
 
   // Authentication & Session Guard State
@@ -221,40 +229,108 @@ export default function App() {
     return session?.user || null;
   });
 
+  useEffect(() => {
+    if (!currentUser) return;
+    let isCurrent = true;
+    authService.validateSession().then((user) => {
+      if (!isCurrent) return;
+      if (!user) {
+        setCurrentUser(null);
+        return;
+      }
+      setCurrentUser(user);
+    });
+    return () => {
+      isCurrent = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!currentUser) return;
+    let isCurrent = true;
+    const hydrateStudentState = async () => {
+      try {
+        const remote = await apiClient.getStudentState();
+        if (!isCurrent) return;
+        if (remote.hasStudentState) {
+          storageService.applyRemoteSnapshot(remote.state || {});
+        } else {
+          storageService.resetAllData();
+          if (remote.state) storageService.applyRemoteSnapshot(remote.state);
+          storageService.setUserProfile(currentUser);
+          await apiClient.saveStudentState(storageService.getRemoteSnapshot());
+        }
+        if (!isCurrent) return;
+        setSavedRoadmaps(storageService.getSavedRoadmaps());
+        setActiveRoadmap(storageService.getActiveRoadmap());
+        setCatalog(storageService.getCatalog());
+        setResources(storageService.getResources());
+        setAttempts(storageService.getAttempts());
+      } catch (error) {
+        console.error("Could not sync student data with backend:", error);
+      }
+    };
+    void hydrateStudentState();
+    return () => {
+      isCurrent = false;
+    };
+  }, [currentUser?.id]);
+
   // Workspace Data States
-  const [savedRoadmaps, setSavedRoadmaps] = useState<SavedRoadmap[]>(() => storageService.getSavedRoadmaps());
-  const [activeRoadmap, setActiveRoadmap] = useState<SavedRoadmap>(() => storageService.getActiveRoadmap());
-  const [catalog, setCatalog] = useState<CatalogTopic[]>(() => storageService.getCatalog());
-  const [resources, setResources] = useState<LearningResource[]>(() => storageService.getResources());
-  const [attempts, setAttempts] = useState<AssessmentAttempt[]>(() => storageService.getAttempts());
+  const [savedRoadmaps, setSavedRoadmaps] = useState<SavedRoadmap[]>(() =>
+    storageService.getSavedRoadmaps(),
+  );
+  const [activeRoadmap, setActiveRoadmap] = useState<SavedRoadmap>(() =>
+    storageService.getActiveRoadmap(),
+  );
+  const [catalog, setCatalog] = useState<CatalogTopic[]>(() =>
+    storageService.getCatalog(),
+  );
+  const [resources, setResources] = useState<LearningResource[]>(() =>
+    storageService.getResources(),
+  );
+  const [attempts, setAttempts] = useState<AssessmentAttempt[]>(() =>
+    storageService.getAttempts(),
+  );
 
   // Navigation state (Student Only)
-  const [activeTab, setActiveTab] = useState<string>('roadmap');
+  const [activeTab, setActiveTab] = useState<string>(() =>
+    currentUser?.role === "admin" ? "admin" : "roadmap",
+  );
   const [activeTopicId, setActiveTopicId] = useState<string>(() => {
     const active = storageService.getActiveRoadmap();
-    return active.nodes[0]?.topicId || 'topic_event_loop';
+    return active.nodes[0]?.topicId || "topic_event_loop";
   });
 
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const [isDesktopSidebarCollapsed, setIsDesktopSidebarCollapsed] = useState(false);
+  const [isDesktopSidebarCollapsed, setIsDesktopSidebarCollapsed] =
+    useState(false);
 
   // Modals & Drawers
   const [isCreateRoadmapOpen, setIsCreateRoadmapOpen] = useState(false);
   const [isDirectoryOpen, setIsDirectoryOpen] = useState(false);
-  const [selectedVerificationResource, setSelectedVerificationResource] = useState<LearningResource | null>(null);
-  const [selectedResourceDetail, setSelectedResourceDetail] = useState<LearningResource | null>(null);
-  const [selectedTopicDetail, setSelectedTopicDetail] = useState<CatalogTopic | null>(null);
-  const [assistantActiveResource, setAssistantActiveResource] = useState<LearningResource | null>(null);
-  const [reportingResource, setReportingResource] = useState<LearningResource | null>(null);
+  const [selectedVerificationResource, setSelectedVerificationResource] =
+    useState<LearningResource | null>(null);
+  const [selectedResourceDetail, setSelectedResourceDetail] =
+    useState<LearningResource | null>(null);
+  const [selectedTopicDetail, setSelectedTopicDetail] =
+    useState<CatalogTopic | null>(null);
+  const [assistantActiveResource, setAssistantActiveResource] =
+    useState<LearningResource | null>(null);
+  const [reportingResource, setReportingResource] =
+    useState<LearningResource | null>(null);
   const [isAssistantOpen, setIsAssistantOpen] = useState(false);
   const [isDocsOpen, setIsDocsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isBackendStatusOpen, setIsBackendStatusOpen] = useState(false);
-  const [verifyingResourceId, setVerifyingResourceId] = useState<string | null>(null);
+  const [verifyingResourceId, setVerifyingResourceId] = useState<string | null>(
+    null,
+  );
 
   // Authentication Handlers
   const handleLoginSuccess = (user: UserProfile) => {
     setCurrentUser(user);
+    setActiveTab(user.role === "admin" ? "admin" : "roadmap");
     storageService.setUserProfile(user);
     const roadmaps = storageService.getSavedRoadmaps();
     setSavedRoadmaps(roadmaps);
@@ -266,7 +342,7 @@ export default function App() {
   };
 
   const handleLogout = () => {
-    authService.logout();
+    void authService.logout();
     setCurrentUser(null);
   };
 
@@ -307,7 +383,7 @@ export default function App() {
       setCurrentUser(updated);
       storageService.setUserProfile(updated);
     }
-    setActiveTab('roadmap');
+    setActiveTab("roadmap");
   };
 
   // Syllabus completed -> update roadmap
@@ -319,19 +395,29 @@ export default function App() {
     if (newNodes.length > 0) {
       setActiveTopicId(newNodes[0].topicId);
     }
-    setActiveTab('roadmap');
+    setActiveTab("roadmap");
   };
 
   // Assessment completed -> sync with backend
-  const handleAssessmentCompleted = async (newAttempt: AssessmentAttempt) => {
+  const handleAssessmentCompleted = async (
+    newAttempt: AssessmentAttempt,
+  ): Promise<AssessmentAttempt> => {
+    const response = await apiClient.submitAssessment(newAttempt);
+    if (!response.success || !response.data) {
+      throw new Error(
+        response.error || "Assessment could not be saved to the server.",
+      );
+    }
+    const authoritativeAttempt = response.data as AssessmentAttempt;
+    storageService.saveAttempt(authoritativeAttempt);
     setAttempts(storageService.getAttempts());
     const updatedActive = storageService.getActiveRoadmap();
     setActiveRoadmap(updatedActive);
     setSavedRoadmaps(storageService.getSavedRoadmaps());
-    apiClient.submitAssessment(newAttempt);
+    return authoritativeAttempt;
   };
 
-  // Trigger live Vertex AI documentation-based verification
+  // Verify resource content through the configured NVIDIA provider
   const handleTriggerLiveVerification = async (res: LearningResource) => {
     setVerifyingResourceId(res.id);
     try {
@@ -340,7 +426,7 @@ export default function App() {
       setSelectedVerificationResource({
         ...res,
         verificationStatus: report.status,
-        verificationReport: report
+        verificationReport: report,
       });
     } finally {
       setVerifyingResourceId(null);
@@ -350,17 +436,20 @@ export default function App() {
   // Handle explainable recommendation action
   const handleSelectRecommendation = (rec: LearningRecommendation) => {
     setActiveTopicId(rec.topicId);
-    if (rec.type === 'retry_assessment' || rec.type === 'more_practice_recommended') {
-      setActiveTab('assessment');
-    } else if (rec.type === 'revise_subtopic') {
-      setActiveTab('resources');
+    if (
+      rec.type === "retry_assessment" ||
+      rec.type === "more_practice_recommended"
+    ) {
+      setActiveTab("assessment");
+    } else if (rec.type === "revise_subtopic") {
+      setActiveTab("resources");
     } else {
-      setActiveTab('roadmap');
+      setActiveTab("roadmap");
     }
   };
 
   const handleResetData = () => {
-    if (confirm('Reset workspace data to initial pre-verified state?')) {
+    if (confirm("Reset workspace data to initial pre-verified state?")) {
       storageService.resetAllData();
       if (currentUser) {
         storageService.setUserProfile(currentUser);
@@ -371,7 +460,7 @@ export default function App() {
       setCatalog(storageService.getCatalog());
       setResources(storageService.getResources());
       setAttempts(storageService.getAttempts());
-      setActiveTopicId(active.nodes[0]?.topicId || 'topic_event_loop');
+      setActiveTopicId(active.nodes[0]?.topicId || "topic_event_loop");
     }
   };
 
@@ -389,9 +478,14 @@ export default function App() {
   }
 
   const currentNodes = activeRoadmap.nodes || [];
-  const completedCount = currentNodes.filter((n) => n.status === 'completed').length;
-  const activeCatalogTopic = catalog.find((c) => c.id === activeTopicId) || catalog[0] || null;
-  const activeRoadmapNode = currentNodes.find((n) => n.topicId === activeTopicId);
+  const completedCount = currentNodes.filter(
+    (n) => n.status === "completed",
+  ).length;
+  const activeCatalogTopic =
+    catalog.find((c) => c.id === activeTopicId) || catalog[0] || null;
+  const activeRoadmapNode = currentNodes.find(
+    (n) => n.topicId === activeTopicId,
+  );
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-[#070b14] dark:text-slate-100 flex flex-row transition-colors duration-150">
@@ -403,7 +497,9 @@ export default function App() {
         isOpenMobile={isMobileSidebarOpen}
         onCloseMobile={() => setIsMobileSidebarOpen(false)}
         isCollapsedDesktop={isDesktopSidebarCollapsed}
-        onToggleCollapseDesktop={() => setIsDesktopSidebarCollapsed(!isDesktopSidebarCollapsed)}
+        onToggleCollapseDesktop={() =>
+          setIsDesktopSidebarCollapsed(!isDesktopSidebarCollapsed)
+        }
         onOpenProfile={() => setIsProfileOpen(true)}
         onOpenBackendStatus={() => setIsBackendStatusOpen(true)}
         onOpenDocs={() => setIsDocsOpen(true)}
@@ -412,7 +508,7 @@ export default function App() {
       {/* 2. Main Content Viewport */}
       <div
         className={`flex-1 flex flex-col min-h-screen transition-all duration-200 ${
-          isDesktopSidebarCollapsed ? 'lg:pl-[72px]' : 'lg:pl-[260px]'
+          isDesktopSidebarCollapsed ? "lg:pl-[72px]" : "lg:pl-[260px]"
         }`}
       >
         {/* Compact Topbar with Logout Action */}
@@ -434,7 +530,7 @@ export default function App() {
 
         {/* Core Workspace Container */}
         <main className="flex-1 max-w-6xl w-full mx-auto px-3.5 sm:px-6 lg:px-8 py-5 pb-28">
-          {activeTab === 'roadmap' && (
+          {activeTab === "roadmap" && (
             <RoadmapView
               roadmap={currentNodes}
               activeSavedRoadmap={activeRoadmap}
@@ -453,12 +549,12 @@ export default function App() {
               }}
               onOpenAssessment={(tid) => {
                 setActiveTopicId(tid);
-                setActiveTab('assessment');
+                setActiveTab("assessment");
               }}
-              onOpenSyllabus={() => setActiveTab('syllabus')}
+              onOpenSyllabus={() => setActiveTab("syllabus")}
               onExploreResources={(tid) => {
                 setActiveTopicId(tid);
-                setActiveTab('resources');
+                setActiveTab("resources");
               }}
               onOpenCreateRoadmap={() => setIsCreateRoadmapOpen(true)}
               onSwitchRoadmap={handleSwitchRoadmap}
@@ -466,14 +562,14 @@ export default function App() {
             />
           )}
 
-          {activeTab === 'syllabus' && (
+          {activeTab === "syllabus" && (
             <SyllabusUploader
               onRoadmapGenerated={handleRoadmapGenerated}
-              onCancel={() => setActiveTab('roadmap')}
+              onCancel={() => setActiveTab("roadmap")}
             />
           )}
 
-          {activeTab === 'resources' && (
+          {activeTab === "resources" && (
             <ResourceList
               resources={resources}
               catalog={catalog}
@@ -488,7 +584,7 @@ export default function App() {
             />
           )}
 
-          {activeTab === 'assessment' && (
+          {activeTab === "assessment" && (
             <div className="space-y-6">
               <WeakTopicAnalysis
                 attempts={attempts}
@@ -509,7 +605,7 @@ export default function App() {
                 selectedTopicId={activeTopicId}
                 userProfile={currentUser}
                 onAssessmentCompleted={handleAssessmentCompleted}
-                onNavigateToRoadmap={() => setActiveTab('roadmap')}
+                onNavigateToRoadmap={() => setActiveTab("roadmap")}
                 onOpenAssistant={(tid) => {
                   setActiveTopicId(tid);
                   setAssistantActiveResource(null);
@@ -519,13 +615,29 @@ export default function App() {
             </div>
           )}
 
-          {activeTab === 'progress' && (
+          {activeTab === "progress" && (
             <ProgressHistoryView
               roadmap={currentNodes}
               attempts={attempts}
               userProfile={currentUser}
-              onNavigateToAssessment={() => setActiveTab('assessment')}
-              onNavigateToRoadmap={() => setActiveTab('roadmap')}
+              onNavigateToAssessment={() => setActiveTab("assessment")}
+              onNavigateToRoadmap={() => setActiveTab("roadmap")}
+            />
+          )}
+
+          {activeTab === "admin" && currentUser.role === "admin" && (
+            <AdminDashboard
+              catalog={catalog}
+              resources={resources}
+              currentUser={currentUser}
+              onUpdateCatalog={(nextCatalog) => {
+                storageService.setCatalog(nextCatalog);
+                setCatalog(nextCatalog);
+              }}
+              onUpdateResources={(nextResources) => {
+                storageService.setResources(nextResources);
+                setResources(nextResources);
+              }}
             />
           )}
         </main>
@@ -592,7 +704,13 @@ export default function App() {
           onVerificationUpdated={(updated) => {
             setResources(storageService.getResources());
             setSelectedVerificationResource((prev) =>
-              prev ? { ...prev, verificationStatus: updated.status, verificationReport: updated } : null
+              prev
+                ? {
+                    ...prev,
+                    verificationStatus: updated.status,
+                    verificationReport: updated,
+                  }
+                : null,
             );
           }}
         />
@@ -636,11 +754,11 @@ export default function App() {
           }}
           onOpenAssessment={(tid) => {
             setActiveTopicId(tid);
-            setActiveTab('assessment');
+            setActiveTab("assessment");
           }}
           onExploreResources={(tid) => {
             setActiveTopicId(tid);
-            setActiveTab('resources');
+            setActiveTab("resources");
           }}
         />
       )}
@@ -651,7 +769,11 @@ export default function App() {
           resource={reportingResource}
           studentName={currentUser.name}
           onClose={() => setReportingResource(null)}
-          onReportSubmitted={() => setResources(storageService.getResources())}
+          onReportSubmitted={async (report) => {
+            const savedReport = await apiClient.submitResourceReport(report);
+            storageService.addReportedIssue(savedReport);
+            setResources(storageService.getResources());
+          }}
         />
       )}
 
@@ -662,13 +784,27 @@ export default function App() {
           onSaveProfile={(updated) => {
             setCurrentUser(updated);
             storageService.setUserProfile(updated);
+            void apiClient
+              .updateProfile(updated)
+              .then((profile) => {
+                setCurrentUser(profile);
+                storageService.setUserProfile(profile);
+                const session = authService.getCurrentSession();
+                if (session)
+                  authService.saveSession({ ...session, user: profile });
+              })
+              .catch((error) => {
+                console.error("Profile update failed:", error);
+              });
           }}
           onClose={() => setIsProfileOpen(false)}
         />
       )}
 
       {/* Backend & Database Connection Diagnostic Modal */}
-      {isBackendStatusOpen && <BackendStatusModal onClose={() => setIsBackendStatusOpen(false)} />}
+      {isBackendStatusOpen && (
+        <BackendStatusModal onClose={() => setIsBackendStatusOpen(false)} />
+      )}
 
       {/* Architecture Documentation Viewer Modal */}
       {isDocsOpen && <DocsViewer onClose={() => setIsDocsOpen(false)} />}

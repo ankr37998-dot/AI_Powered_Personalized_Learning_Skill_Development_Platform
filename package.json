@@ -1,6 +1,9 @@
 {
   "name": "cognipath-ai-personalized-learning-verification-platform",
-  "workspaces": ["frontend", "backend"], 
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
   "scripts": {
     "dev-frontend": "npm run dev --prefix frontend",
     "dev-backend": "npm run dev --prefix backend",
@@ -8,5 +11,8 @@
   },
   "devDependencies": {
     "concurrently": "latest"
+  },
+  "dependencies": {
+    "@google/genai": "^2.28.0"
   }
 }

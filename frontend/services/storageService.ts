@@ -8,139 +8,220 @@ import {
   VerificationReport,
   ReportedResourceIssue,
   PlatformConfig,
-  SavedRoadmap
-} from '../types';
+  SavedRoadmap,
+} from "../types";
 import {
   CURATED_CATALOG,
   INITIAL_RESOURCES,
   INITIAL_ASSESSMENT_QUESTIONS,
   INITIAL_REPORTED_ISSUES,
-  DEFAULT_PLATFORM_CONFIG
-} from '../constants';
+  DEFAULT_PLATFORM_CONFIG,
+} from "../constants";
 
 const STORAGE_KEYS = {
-  USER_PROFILE: 'cognipath_user_profile',
-  ALL_USERS: 'cognipath_all_users_list',
-  SAVED_ROADMAPS: 'cognipath_saved_roadmaps',
-  ACTIVE_ROADMAP_ID: 'cognipath_active_roadmap_id',
-  CATALOG: 'cognipath_catalog_topics',
-  RESOURCES: 'cognipath_resources',
-  QUESTIONS: 'cognipath_questions',
-  ATTEMPTS: 'cognipath_assessment_attempts',
-  REPORTED_ISSUES: 'cognipath_reported_issues',
-  PLATFORM_CONFIG: 'cognipath_platform_config',
-  VERIFICATION_HISTORY: 'cognipath_verification_history'
+  USER_PROFILE: "cognipath_user_profile",
+  ALL_USERS: "cognipath_all_users_list",
+  SAVED_ROADMAPS: "cognipath_saved_roadmaps",
+  ACTIVE_ROADMAP_ID: "cognipath_active_roadmap_id",
+  CATALOG: "cognipath_catalog_topics",
+  RESOURCES: "cognipath_resources",
+  QUESTIONS: "cognipath_questions",
+  ATTEMPTS: "cognipath_assessment_attempts",
+  REPORTED_ISSUES: "cognipath_reported_issues",
+  PLATFORM_CONFIG: "cognipath_platform_config",
+  VERIFICATION_HISTORY: "cognipath_verification_history",
 };
 
+const REMOTE_STATE_FIELDS = {
+  savedRoadmaps: STORAGE_KEYS.SAVED_ROADMAPS,
+  activeRoadmapId: STORAGE_KEYS.ACTIVE_ROADMAP_ID,
+  catalog: STORAGE_KEYS.CATALOG,
+  resources: STORAGE_KEYS.RESOURCES,
+  questions: STORAGE_KEYS.QUESTIONS,
+  attempts: STORAGE_KEYS.ATTEMPTS,
+  reportedIssues: STORAGE_KEYS.REPORTED_ISSUES,
+  platformConfig: STORAGE_KEYS.PLATFORM_CONFIG,
+  verificationHistory: STORAGE_KEYS.VERIFICATION_HISTORY,
+} as const;
+
+let remoteSyncTimer: ReturnType<typeof setTimeout> | null = null;
+let suppressRemoteSync = false;
+
+function parseStoredValue(key: string): unknown {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function getRemoteSnapshot(): Record<string, unknown> {
+  return Object.fromEntries(
+    Object.entries(REMOTE_STATE_FIELDS).flatMap(([field, key]) => {
+      const value = parseStoredValue(key);
+      return value === undefined ? [] : [[field, value]];
+    }),
+  );
+}
+
+function scheduleRemoteSync(): void {
+  if (suppressRemoteSync || typeof window === "undefined") return;
+  if (remoteSyncTimer) clearTimeout(remoteSyncTimer);
+  remoteSyncTimer = setTimeout(async () => {
+    try {
+      const session = parseStoredValue("cognipath_auth_session") as
+        | { token?: string }
+        | undefined;
+      if (!session?.token) return;
+      await fetch("http://localhost:5000/api/state", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.token}`,
+        },
+        body: JSON.stringify({ state: getRemoteSnapshot() }),
+        signal: AbortSignal.timeout(8000),
+      });
+    } catch {
+      // Keep local data usable when the backend is temporarily unavailable.
+    }
+  }, 350);
+}
+
 const DEFAULT_PROFILE: UserProfile = {
-  id: 'usr_student_01',
-  name: 'Alex Rivera',
-  email: 'alex.rivera@university.edu',
-  role: 'student',
-  targetGoal: 'Master Production Node.js Architecture & Performance Engineering',
-  currentSkillLevel: 'intermediate',
-  preferredLanguage: 'JavaScript / TypeScript',
-  registeredDate: '2025-01-10',
-  status: 'active'
+  id: "usr_student_01",
+  name: "Alex Rivera",
+  email: "alex.rivera@university.edu",
+  role: "student",
+  targetGoal:
+    "Master Production Node.js Architecture & Performance Engineering",
+  currentSkillLevel: "intermediate",
+  preferredLanguage: "JavaScript / TypeScript",
+  registeredDate: "2025-01-10",
+  status: "active",
 };
 
 const DEFAULT_NODEJS_ROADMAP: SavedRoadmap = {
-  id: 'roadmap_default_nodejs',
-  studentId: 'usr_student_01',
-  title: 'Production Node.js Architecture & Internals',
-  category: 'career',
-  description: 'Structured backend engineering path covering event loop phases, microtasks, binary streams, and cluster scaling.',
-  targetFocus: 'comprehensive',
-  skillLevel: 'intermediate',
+  id: "roadmap_default_nodejs",
+  studentId: "usr_student_01",
+  title: "Production Node.js Architecture & Internals",
+  category: "career",
+  description:
+    "Structured backend engineering path covering event loop phases, microtasks, binary streams, and cluster scaling.",
+  targetFocus: "comprehensive",
+  skillLevel: "intermediate",
   weeklyHours: 10,
   totalEstimatedHours: 48,
-  createdAt: '2025-02-01T00:00:00Z',
-  updatedAt: '2025-02-23T00:00:00Z',
+  createdAt: "2025-02-01T00:00:00Z",
+  updatedAt: "2025-02-23T00:00:00Z",
   phases: [
     {
-      id: 'phase_runtimes',
-      title: 'Phase 1: Architecture & Asynchronous Runtimes',
-      description: 'Single-threaded event loop, 6 distinct phases, and libuv thread pool offloading.',
+      id: "phase_runtimes",
+      title: "Phase 1: Architecture & Asynchronous Runtimes",
+      description:
+        "Single-threaded event loop, 6 distinct phases, and libuv thread pool offloading.",
       order: 1,
       estimatedWeeks: 2,
-      milestoneProject: 'Build a low-overhead HTTP performance profiler measuring event-loop lag',
-      topicIds: ['topic_event_loop', 'topic_microtasks']
+      milestoneProject:
+        "Build a low-overhead HTTP performance profiler measuring event-loop lag",
+      topicIds: ["topic_event_loop", "topic_microtasks"],
     },
     {
-      id: 'phase_memory_streams',
-      title: 'Phase 2: Memory & High-Throughput Streams',
-      description: 'Buffer allocations outside V8 heap, zero-fill guarantees, and stream backpressure.',
+      id: "phase_memory_streams",
+      title: "Phase 2: Memory & High-Throughput Streams",
+      description:
+        "Buffer allocations outside V8 heap, zero-fill guarantees, and stream backpressure.",
       order: 2,
       estimatedWeeks: 2,
-      milestoneProject: 'Implement a zero-copy streaming file transformer with drain event backpressure handling',
-      topicIds: ['topic_buffers_streams']
+      milestoneProject:
+        "Implement a zero-copy streaming file transformer with drain event backpressure handling",
+      topicIds: ["topic_buffers_streams"],
     },
     {
-      id: 'phase_scaling_ipc',
-      title: 'Phase 3: Scalability & Process Management',
-      description: 'Multi-core clustering, round-robin socket delegation, and graceful shutdown.',
+      id: "phase_scaling_ipc",
+      title: "Phase 3: Scalability & Process Management",
+      description:
+        "Multi-core clustering, round-robin socket delegation, and graceful shutdown.",
       order: 3,
       estimatedWeeks: 2,
-      milestoneProject: 'Deploy a zero-downtime rolling restart cluster server with health checks',
-      topicIds: ['topic_cluster_scaling']
-    }
+      milestoneProject:
+        "Deploy a zero-downtime rolling restart cluster server with health checks",
+      topicIds: ["topic_cluster_scaling"],
+    },
   ],
   nodes: [
     {
-      topicId: 'topic_event_loop',
-      title: 'Node.js Event Loop & Libuv Architecture',
-      unit: 'Phase 1: Architecture & Asynchronous Runtimes',
-      phaseId: 'phase_runtimes',
-      status: 'completed',
+      topicId: "topic_event_loop",
+      title: "Node.js Event Loop & Libuv Architecture",
+      unit: "Phase 1: Architecture & Asynchronous Runtimes",
+      phaseId: "phase_runtimes",
+      status: "completed",
       order: 1,
       prerequisitesMet: true,
       score: 85,
-      lastStudiedAt: '2025-02-23',
+      lastStudiedAt: "2025-02-23",
       estimatedHours: 8,
-      learningObjective: 'Master the 6 event loop phases, libuv OS abstraction, and call stack timing.',
-      keyCompetencies: ['Identify phase execution order', 'Diagnose event loop latency with perf_hooks']
+      learningObjective:
+        "Master the 6 event loop phases, libuv OS abstraction, and call stack timing.",
+      keyCompetencies: [
+        "Identify phase execution order",
+        "Diagnose event loop latency with perf_hooks",
+      ],
     },
     {
-      topicId: 'topic_microtasks',
-      title: 'Microtasks: process.nextTick & Promises',
-      unit: 'Phase 1: Architecture & Asynchronous Runtimes',
-      phaseId: 'phase_runtimes',
-      status: 'in_progress',
+      topicId: "topic_microtasks",
+      title: "Microtasks: process.nextTick & Promises",
+      unit: "Phase 1: Architecture & Asynchronous Runtimes",
+      phaseId: "phase_runtimes",
+      status: "in_progress",
       order: 2,
       prerequisitesMet: true,
       score: 60,
-      lastStudiedAt: '2025-02-24',
+      lastStudiedAt: "2025-02-24",
       estimatedHours: 6,
-      learningObjective: 'Understand nextTickQueue execution priority over standard ECMAScript microtasks.',
-      keyCompetencies: ['Predict microtask checkpoint timing', 'Prevent recursive nextTick starvation']
+      learningObjective:
+        "Understand nextTickQueue execution priority over standard ECMAScript microtasks.",
+      keyCompetencies: [
+        "Predict microtask checkpoint timing",
+        "Prevent recursive nextTick starvation",
+      ],
     },
     {
-      topicId: 'topic_buffers_streams',
-      title: 'Buffers, Binary Data & Backpressure',
-      unit: 'Phase 2: Memory & High-Throughput Streams',
-      phaseId: 'phase_memory_streams',
-      status: 'needs_revision',
+      topicId: "topic_buffers_streams",
+      title: "Buffers, Binary Data & Backpressure",
+      unit: "Phase 2: Memory & High-Throughput Streams",
+      phaseId: "phase_memory_streams",
+      status: "needs_revision",
       order: 3,
       prerequisitesMet: true,
       score: 40,
-      lastStudiedAt: '2025-02-25',
+      lastStudiedAt: "2025-02-25",
       estimatedHours: 12,
-      learningObjective: 'Allocate safe zero-filled buffers and handle backpressure using stream.pipeline and drain.',
-      keyCompetencies: ['Audit insecure new Buffer() usage', 'Implement highWaterMark backpressure throttling']
+      learningObjective:
+        "Allocate safe zero-filled buffers and handle backpressure using stream.pipeline and drain.",
+      keyCompetencies: [
+        "Audit insecure new Buffer() usage",
+        "Implement highWaterMark backpressure throttling",
+      ],
     },
     {
-      topicId: 'topic_cluster_scaling',
-      title: 'Process Management, Clustering & IPC',
-      unit: 'Phase 3: Scalability & Process Management',
-      phaseId: 'phase_scaling_ipc',
-      status: 'locked',
+      topicId: "topic_cluster_scaling",
+      title: "Process Management, Clustering & IPC",
+      unit: "Phase 3: Scalability & Process Management",
+      phaseId: "phase_scaling_ipc",
+      status: "locked",
       order: 4,
       prerequisitesMet: false,
       estimatedHours: 14,
-      learningObjective: 'Scale backend throughput across CPU cores using master-worker socket delegation and IPC.',
-      keyCompetencies: ['Design rolling restart zero-downtime architectures', 'Coordinate inter-process communication']
-    }
-  ]
+      learningObjective:
+        "Scale backend throughput across CPU cores using master-worker socket delegation and IPC.",
+      keyCompetencies: [
+        "Design rolling restart zero-downtime architectures",
+        "Coordinate inter-process communication",
+      ],
+    },
+  ],
 };
 
 export const storageService = {
@@ -149,7 +230,7 @@ export const storageService = {
       const stored = localStorage.getItem(STORAGE_KEYS.USER_PROFILE);
       if (stored) {
         const parsed = JSON.parse(stored);
-        return { ...parsed, role: 'student' };
+        return parsed;
       }
       return DEFAULT_PROFILE;
     } catch {
@@ -158,8 +239,7 @@ export const storageService = {
   },
 
   setUserProfile(profile: UserProfile): void {
-    const studentOnlyProfile: UserProfile = { ...profile, role: 'student' };
-    localStorage.setItem(STORAGE_KEYS.USER_PROFILE, JSON.stringify(studentOnlyProfile));
+    localStorage.setItem(STORAGE_KEYS.USER_PROFILE, JSON.stringify(profile));
   },
 
   // ----------------------------------------------------------------
@@ -184,9 +264,13 @@ export const storageService = {
 
   setSavedRoadmaps(roadmaps: SavedRoadmap[]): void {
     try {
-      localStorage.setItem(STORAGE_KEYS.SAVED_ROADMAPS, JSON.stringify(roadmaps));
+      localStorage.setItem(
+        STORAGE_KEYS.SAVED_ROADMAPS,
+        JSON.stringify(roadmaps),
+      );
+      scheduleRemoteSync();
     } catch (e) {
-      console.warn('Failed to save roadmaps in localStorage:', e);
+      console.warn("Failed to save roadmaps in localStorage:", e);
     }
   },
 
@@ -202,6 +286,7 @@ export const storageService = {
 
   setActiveRoadmapId(roadmapId: string): void {
     localStorage.setItem(STORAGE_KEYS.ACTIVE_ROADMAP_ID, roadmapId);
+    scheduleRemoteSync();
   },
 
   getActiveRoadmap(): SavedRoadmap {
@@ -226,14 +311,16 @@ export const storageService = {
           title: node.title,
           category: roadmap.title,
           difficulty: roadmap.skillLevel,
-          summary: node.learningObjective || `${node.title} competency in ${roadmap.title}.`,
+          summary:
+            node.learningObjective ||
+            `${node.title} competency in ${roadmap.title}.`,
           prerequisiteIds: roadmap.nodes
             .filter((n) => n.order < node.order && n.topicId !== node.topicId)
             .map((n) => n.topicId)
             .slice(0, 1),
           keyCompetencies: node.keyCompetencies || [node.title],
           isActive: true,
-          officialDocSources: []
+          officialDocSources: [],
         });
       }
     });
@@ -272,7 +359,7 @@ export const storageService = {
     const updatedRoadmap: SavedRoadmap = {
       ...active,
       nodes,
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
     };
     this.saveRoadmap(updatedRoadmap);
   },
@@ -288,6 +375,7 @@ export const storageService = {
 
   setCatalog(catalog: CatalogTopic[]): void {
     localStorage.setItem(STORAGE_KEYS.CATALOG, JSON.stringify(catalog));
+    scheduleRemoteSync();
   },
 
   getResources(): LearningResource[] {
@@ -301,6 +389,7 @@ export const storageService = {
 
   setResources(resources: LearningResource[]): void {
     localStorage.setItem(STORAGE_KEYS.RESOURCES, JSON.stringify(resources));
+    scheduleRemoteSync();
   },
 
   saveVerificationReport(report: VerificationReport): void {
@@ -311,7 +400,7 @@ export const storageService = {
           ...r,
           verificationStatus: report.status,
           verificationReport: report,
-          lastCheckedDate: report.checkedAt.split('T')[0]
+          lastCheckedDate: report.checkedAt.split("T")[0],
         };
       }
       return r;
@@ -321,9 +410,13 @@ export const storageService = {
     const history = this.getVerificationHistory();
     history.unshift(report);
     try {
-      localStorage.setItem(STORAGE_KEYS.VERIFICATION_HISTORY, JSON.stringify(history.slice(0, 50)));
+      localStorage.setItem(
+        STORAGE_KEYS.VERIFICATION_HISTORY,
+        JSON.stringify(history.slice(0, 50)),
+      );
+      scheduleRemoteSync();
     } catch (e) {
-      console.warn('Failed to persist verification history:', e);
+      console.warn("Failed to persist verification history:", e);
     }
   },
 
@@ -358,17 +451,23 @@ export const storageService = {
     const attempts = this.getAttempts();
     attempts.unshift(attempt);
     localStorage.setItem(STORAGE_KEYS.ATTEMPTS, JSON.stringify(attempts));
+    scheduleRemoteSync();
 
     const roadmap = this.getRoadmap();
     const pct = Math.round((attempt.totalScore / attempt.maxScore) * 100);
     const updated = roadmap.map((node) => {
       if (node.topicId === attempt.topicId) {
-        const newStatus = pct >= 75 ? 'completed' : pct >= 50 ? 'in_progress' : 'needs_revision';
+        const newStatus =
+          pct >= 75
+            ? "completed"
+            : pct >= 50
+              ? "in_progress"
+              : "needs_revision";
         return {
           ...node,
           score: pct,
           status: newStatus,
-          lastStudiedAt: new Date().toISOString().split('T')[0]
+          lastStudiedAt: new Date().toISOString().split("T")[0],
         };
       }
       return node;
@@ -376,15 +475,19 @@ export const storageService = {
 
     const catalog = this.getCatalog();
     const completedIds = new Set(
-      updated.filter((n) => n.status === 'completed').map((n) => n.topicId)
+      updated.filter((n) => n.status === "completed").map((n) => n.topicId),
     );
 
     const reChecked = updated.map((node) => {
       const catEntry = catalog.find((c) => c.id === node.topicId);
       const prereqs = catEntry ? catEntry.prerequisiteIds : [];
       const met = prereqs.every((p) => completedIds.has(p));
-      if (node.status === 'locked' && met) {
-        return { ...node, status: 'available' as const, prerequisitesMet: true };
+      if (node.status === "locked" && met) {
+        return {
+          ...node,
+          status: "available" as const,
+          prerequisitesMet: true,
+        };
       }
       return { ...node, prerequisitesMet: met };
     });
@@ -405,18 +508,23 @@ export const storageService = {
     const issues = this.getReportedIssues();
     issues.unshift(issue);
     localStorage.setItem(STORAGE_KEYS.REPORTED_ISSUES, JSON.stringify(issues));
+    scheduleRemoteSync();
 
     const resources = this.getResources().map((r) =>
-      r.id === issue.resourceId ? { ...r, isReported: true } : r
+      r.id === issue.resourceId ? { ...r, isReported: true } : r,
     );
     this.setResources(resources);
   },
 
-  updateReportedIssueStatus(issueId: string, newStatus: 'resolved' | 'dismissed'): void {
+  updateReportedIssueStatus(
+    issueId: string,
+    newStatus: "resolved" | "dismissed",
+  ): void {
     const issues = this.getReportedIssues().map((i) =>
-      i.id === issueId ? { ...i, status: newStatus } : i
+      i.id === issueId ? { ...i, status: newStatus } : i,
     );
     localStorage.setItem(STORAGE_KEYS.REPORTED_ISSUES, JSON.stringify(issues));
+    scheduleRemoteSync();
   },
 
   getPlatformConfig(): PlatformConfig {
@@ -430,9 +538,41 @@ export const storageService = {
 
   setPlatformConfig(cfg: PlatformConfig): void {
     localStorage.setItem(STORAGE_KEYS.PLATFORM_CONFIG, JSON.stringify(cfg));
+    scheduleRemoteSync();
+  },
+
+  getAllUsers(): UserProfile[] {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEYS.ALL_USERS);
+      return stored ? JSON.parse(stored) : [DEFAULT_PROFILE];
+    } catch {
+      return [DEFAULT_PROFILE];
+    }
+  },
+
+  setAllUsers(users: UserProfile[]): void {
+    localStorage.setItem(STORAGE_KEYS.ALL_USERS, JSON.stringify(users));
+  },
+
+  getRemoteSnapshot(): Record<string, unknown> {
+    return getRemoteSnapshot();
+  },
+
+  applyRemoteSnapshot(state: Record<string, unknown>): void {
+    suppressRemoteSync = true;
+    try {
+      for (const [field, key] of Object.entries(REMOTE_STATE_FIELDS)) {
+        if (Object.prototype.hasOwnProperty.call(state, field)) {
+          localStorage.setItem(key, JSON.stringify(state[field]));
+        }
+      }
+    } finally {
+      suppressRemoteSync = false;
+    }
   },
 
   resetAllData(): void {
-    localStorage.clear();
-  }
+    Object.values(STORAGE_KEYS).forEach((key) => localStorage.removeItem(key));
+    scheduleRemoteSync();
+  },
 };

@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { UserProfile } from '../types';
-import { authService } from '../services/authService';
-import { ThemeMode } from '../services/themeService';
+import React, { useState } from "react";
+import { UserProfile } from "../types";
+import { authService } from "../services/authService";
+import { ThemeMode } from "../services/themeService";
 import {
   Cpu,
   Mail,
@@ -16,8 +16,8 @@ import {
   Sun,
   Moon,
   Compass,
-  ShieldCheck
-} from 'lucide-react';
+  ShieldCheck,
+} from "lucide-react";
 
 interface AuthPageProps {
   onLoginSuccess: (user: UserProfile) => void;
@@ -28,14 +28,18 @@ interface AuthPageProps {
 export const AuthPage: React.FC<AuthPageProps> = ({
   onLoginSuccess,
   currentTheme,
-  onToggleTheme
+  onToggleTheme,
 }) => {
-  const [mode, setMode] = useState<'login' | 'register'>('login');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  const [targetGoal, setTargetGoal] = useState('Master Production Node.js & System Architecture');
-  const [skillLevel, setSkillLevel] = useState<'beginner' | 'intermediate' | 'advanced'>('intermediate');
+  const [mode, setMode] = useState<"login" | "register">("login");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [targetGoal, setTargetGoal] = useState(
+    "Master Production Node.js & System Architecture",
+  );
+  const [skillLevel, setSkillLevel] = useState<
+    "beginner" | "intermediate" | "advanced"
+  >("intermediate");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -46,10 +50,12 @@ export const AuthPage: React.FC<AuthPageProps> = ({
     setIsLoading(true);
 
     try {
-      if (mode === 'login') {
+      if (mode === "login") {
         const res = await authService.login({ email, password });
         if (!res.success || !res.user) {
-          setErrorMessage(res.error || 'Failed to sign in. Please verify your credentials.');
+          setErrorMessage(
+            res.error || "Failed to sign in. Please verify your credentials.",
+          );
         } else {
           onLoginSuccess(res.user);
         }
@@ -59,25 +65,27 @@ export const AuthPage: React.FC<AuthPageProps> = ({
           email,
           password,
           targetGoal,
-          currentSkillLevel: skillLevel
+          currentSkillLevel: skillLevel,
         });
         if (!res.success || !res.user) {
-          setErrorMessage(res.error || 'Registration failed.');
+          setErrorMessage(res.error || "Registration failed.");
         } else {
           onLoginSuccess(res.user);
         }
       }
     } catch (err: any) {
-      setErrorMessage(err.message || 'An unexpected authentication error occurred.');
+      setErrorMessage(
+        err.message || "An unexpected authentication error occurred.",
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleFillDemoStudent = () => {
-    setMode('login');
-    setEmail('alex.rivera@university.edu');
-    setPassword('password123');
+    setMode("login");
+    setEmail("alex.rivera@university.edu");
+    setPassword("password123");
     setErrorMessage(null);
   };
 
@@ -90,7 +98,10 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             <Cpu className="w-4 h-4" />
           </div>
           <span className="font-bold text-base tracking-tight text-slate-900 dark:text-white">
-            CogniPath <span className="text-indigo-600 dark:text-indigo-400 font-mono text-xs">AI</span>
+            CogniPath{" "}
+            <span className="text-indigo-600 dark:text-indigo-400 font-mono text-xs">
+              AI
+            </span>
           </span>
         </div>
 
@@ -98,10 +109,14 @@ export const AuthPage: React.FC<AuthPageProps> = ({
           <button
             onClick={onToggleTheme}
             className="p-2 rounded-xl text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition border border-slate-200 dark:border-slate-700"
-            title={`Switch to ${currentTheme === 'dark' ? 'Light' : 'Dark'} mode`}
+            title={`Switch to ${currentTheme === "dark" ? "Light" : "Dark"} mode`}
             aria-label="Toggle theme mode"
           >
-            {currentTheme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-indigo-600" />}
+            {currentTheme === "dark" ? (
+              <Sun className="w-4 h-4 text-amber-400" />
+            ) : (
+              <Moon className="w-4 h-4 text-indigo-600" />
+            )}
           </button>
         </div>
       </header>
@@ -112,12 +127,14 @@ export const AuthPage: React.FC<AuthPageProps> = ({
           {/* Card Title & Greeting */}
           <div className="text-center space-y-1.5">
             <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-              {mode === 'login' ? 'Welcome back to CogniPath' : 'Create your Student Account'}
+              {mode === "login"
+                ? "Welcome back to CogniPath"
+                : "Create your Student Account"}
             </h1>
             <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-              {mode === 'login'
-                ? 'Sign in to access your roadmaps, progress, and study materials.'
-                : 'Start generating personalized AI roadmaps and diagnostic assessments.'}
+              {mode === "login"
+                ? "Sign in to access your roadmaps, progress, and study materials."
+                : "Start generating personalized AI roadmaps and diagnostic assessments."}
             </p>
           </div>
 
@@ -126,13 +143,13 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             <button
               type="button"
               onClick={() => {
-                setMode('login');
+                setMode("login");
                 setErrorMessage(null);
               }}
               className={`py-2 rounded-lg transition ${
-                mode === 'login'
-                  ? 'bg-white dark:bg-slate-750 text-indigo-600 dark:text-indigo-400 shadow-xs'
-                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                mode === "login"
+                  ? "bg-white dark:bg-slate-750 text-indigo-600 dark:text-indigo-400 shadow-xs"
+                  : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
               Sign In
@@ -140,13 +157,13 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             <button
               type="button"
               onClick={() => {
-                setMode('register');
+                setMode("register");
                 setErrorMessage(null);
               }}
               className={`py-2 rounded-lg transition ${
-                mode === 'register'
-                  ? 'bg-white dark:bg-slate-750 text-indigo-600 dark:text-indigo-400 shadow-xs'
-                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                mode === "register"
+                  ? "bg-white dark:bg-slate-750 text-indigo-600 dark:text-indigo-400 shadow-xs"
+                  : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
               New Student
@@ -163,7 +180,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-            {mode === 'register' && (
+            {mode === "register" && (
               <div className="space-y-1">
                 <label className="font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider text-[10px]">
                   Full Name *
@@ -204,15 +221,19 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                 <label className="font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider text-[10px]">
                   Password *
                 </label>
-                {mode === 'register' && (
-                  <span className="text-[10px] text-slate-400">Min. 6 characters</span>
+                {mode === "register" && (
+                  <span className="text-[10px] text-slate-400">
+                    Min. 8 characters
+                  </span>
                 )}
               </div>
               <div className="relative">
                 <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                 <input
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   required
+                  minLength={mode === "register" ? 8 : undefined}
+                  maxLength={128}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
@@ -222,14 +243,18 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-3 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-0.5"
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
                 </button>
               </div>
             </div>
 
-            {mode === 'register' && (
+            {mode === "register" && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                 <div className="space-y-1">
                   <label className="font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider text-[10px]">
@@ -270,7 +295,11 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                 <span>Authenticating student...</span>
               ) : (
                 <>
-                  <span>{mode === 'login' ? 'Sign In to Workspace' : 'Create Student Account'}</span>
+                  <span>
+                    {mode === "login"
+                      ? "Sign In to Workspace"
+                      : "Create Student Account"}
+                  </span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
@@ -295,7 +324,9 @@ export const AuthPage: React.FC<AuthPageProps> = ({
 
       {/* Footer */}
       <footer className="h-12 border-t border-slate-200/80 dark:border-slate-800/80 px-4 text-center flex items-center justify-center text-xs text-slate-400">
-        <span>CogniPath AI — Student-Exclusive Learning & Verification Platform</span>
+        <span>
+          CogniPath AI — Student-Exclusive Learning & Verification Platform
+        </span>
       </footer>
     </div>
   );

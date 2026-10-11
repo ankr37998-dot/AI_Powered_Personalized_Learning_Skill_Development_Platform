@@ -1,12 +1,12 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from "react";
 import {
   CatalogTopic,
   ChatMessage,
   ChatSessionContext,
   LearningResource,
-  AssistantCitation
-} from '../types';
-import { chatAssistantService } from '../services/chatAssistantService';
+  AssistantCitation,
+} from "../types";
+import { chatAssistantService } from "../services/chatAssistantService";
 import {
   Sparkles,
   Send,
@@ -23,8 +23,8 @@ import {
   AlertCircle,
   Copy,
   Check,
-  Building
-} from 'lucide-react';
+  Building,
+} from "lucide-react";
 
 interface AiAssistantDrawerProps {
   activeTopic: CatalogTopic | null;
@@ -39,30 +39,33 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
   activeResource,
   learningGoal,
   onClose,
-  onNavigateToTopic
+  onNavigateToTopic,
 }) => {
   const [messages, setMessages] = useState<ChatMessage[]>(() => {
     const starterGreeting: ChatMessage = {
-      id: 'greeting_0',
-      sender: 'assistant',
+      id: "greeting_0",
+      sender: "assistant",
       text: activeResource
-        ? `Hello! I am your Vertex AI Learning Assistant for **${activeResource.title}** (${activeTopic?.title || 'Active Topic'}). What concepts, implementation details, or specification questions can I help clarify?`
+        ? `Ask me about **${activeResource.title}** (${activeTopic?.title || "Active Topic"}). I will use the current topic and official references as context.`
         : activeTopic
-        ? `Hello! I am your Vertex AI Learning Assistant grounded in **${activeTopic.title}**. What concept, event loop phase, or systems architecture question would you like to explore?`
-        : `Hello! I am your real-time AI Learning Assistant. Select any topic or resource from your roadmap to start contextual doubt solving!`,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          ? `Ask me about **${activeTopic.title}**. I will use this topic and its official references as context.`
+          : "Ask a question about your learning path to get started.",
+      timestamp: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
       citations: activeTopic?.officialDocSources?.map((src, i) => ({
         id: `init_src_${i}`,
         title: src.title,
         url: src.url,
         authorityName: src.authorityName,
-        provenance: 'canonical_spec'
-      }))
+        provenance: "canonical_spec",
+      })),
     };
     return [starterGreeting];
   });
 
-  const [inputQuestion, setInputQuestion] = useState('');
+  const [inputQuestion, setInputQuestion] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -71,7 +74,7 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
@@ -79,19 +82,22 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
   }, [messages]);
 
   const sessionContext: ChatSessionContext = {
-    learningGoal: learningGoal || 'Master Production Node.js Architecture',
+    learningGoal: learningGoal || "Master Production Node.js Architecture",
     activeTopic,
     activeResource,
     prerequisites: activeTopic?.prerequisiteIds || [],
-    verificationReportSummary: activeResource?.verificationReport?.findings?.[0]
+    verificationReportSummary:
+      activeResource?.verificationReport?.findings?.[0],
   };
 
   const starterPrompts = [
-    'Explain this concept simply.',
-    'Give me a practical code example.',
-    'Explain this execution step by step.',
-    'What should I understand before this topic?',
-    activeResource ? 'Help me understand a key concept from this resource.' : 'Compare this with standard synchronous I/O.'
+    "Explain this concept simply.",
+    "Give me a practical code example.",
+    "Explain this execution step by step.",
+    "What should I understand before this topic?",
+    activeResource
+      ? "Help me understand a key concept from this resource."
+      : "Compare this with standard synchronous I/O.",
   ];
 
   const handleStopGeneration = () => {
@@ -108,17 +114,20 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
     setMessages([
       {
         id: `greeting_${Date.now()}`,
-        sender: 'assistant',
-        text: `Conversation cleared. Grounded in **${activeTopic?.title || 'Backend Architecture'}**. What would you like to ask next?`,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        sender: "assistant",
+        text: `Conversation cleared. Grounded in **${activeTopic?.title || "Backend Architecture"}**. What would you like to ask next?`,
+        timestamp: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
         citations: activeTopic?.officialDocSources?.map((s, i) => ({
           id: `clr_${i}`,
           title: s.title,
           url: s.url,
           authorityName: s.authorityName,
-          provenance: 'canonical_spec'
-        }))
-      }
+          provenance: "canonical_spec",
+        })),
+      },
     ]);
   };
 
@@ -132,24 +141,30 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
 
     const userMessage: ChatMessage = {
       id: userMsgId,
-      sender: 'student',
+      sender: "student",
       text: query,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      timestamp: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
       topicContextId: activeTopic?.id,
-      resourceContextId: activeResource?.id
+      resourceContextId: activeResource?.id,
     };
 
     const streamingPlaceholder: ChatMessage = {
       id: assistantMsgId,
-      sender: 'assistant',
-      text: '',
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      sender: "assistant",
+      text: "",
+      timestamp: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
       isStreaming: true,
-      topicContextId: activeTopic?.id
+      topicContextId: activeTopic?.id,
     };
 
     setMessages((prev) => [...prev, userMessage, streamingPlaceholder]);
-    setInputQuestion('');
+    setInputQuestion("");
     setIsStreaming(true);
 
     const controller = new AbortController();
@@ -164,8 +179,10 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
           onChunk: (accumulated) => {
             setMessages((prev) =>
               prev.map((m) =>
-                m.id === assistantMsgId ? { ...m, text: accumulated, isStreaming: true } : m
-              )
+                m.id === assistantMsgId
+                  ? { ...m, text: accumulated, isStreaming: true }
+                  : m,
+              ),
             );
           },
           onComplete: (fullText, citations) => {
@@ -177,45 +194,58 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
                       text: fullText,
                       isStreaming: false,
                       citations,
-                      groundingStatus: citations.length > 0 ? 'grounded_in_canonical_docs' : 'general_knowledge_fallback'
+                      groundingStatus:
+                        citations.length > 0
+                          ? "grounded_in_canonical_docs"
+                          : "general_knowledge_fallback",
                     }
-                  : m
-              )
+                  : m,
+              ),
             );
             setIsStreaming(false);
             abortControllerRef.current = null;
           },
           onError: (err) => {
-            setErrorMessage(err.message || 'Vertex AI stream encountered a connection interruption.');
+            setErrorMessage(err.message || "Gemini assistant request failed.");
             setMessages((prev) =>
               prev.map((m) =>
                 m.id === assistantMsgId
                   ? {
                       ...m,
-                      text: m.text.length > 0 ? m.text : 'I was unable to complete the response due to a service timeout or interruption. Please retry.',
+                      text:
+                        m.text.length > 0
+                          ? m.text
+                          : "Gemini could not complete this answer. Check the backend API configuration and retry.",
                       isStreaming: false,
-                      hasError: true
+                      hasError: true,
                     }
-                  : m
-              )
+                  : m,
+              ),
             );
             setIsStreaming(false);
             abortControllerRef.current = null;
-          }
+          },
         },
-        controller.signal
+        controller.signal,
       );
     } catch (err: any) {
-      if (err.message?.includes('aborted') || err.message?.includes('cancelled')) {
+      if (
+        err.message?.includes("aborted") ||
+        err.message?.includes("cancelled")
+      ) {
         setMessages((prev) =>
           prev.map((m) =>
             m.id === assistantMsgId
-              ? { ...m, text: m.text + ' [Generation stopped by user]', isStreaming: false }
-              : m
-          )
+              ? {
+                  ...m,
+                  text: m.text + " [Generation stopped by user]",
+                  isStreaming: false,
+                }
+              : m,
+          ),
         );
       } else {
-        setErrorMessage(err.message || 'Failed to initialize AI stream.');
+        setErrorMessage(err.message || "Failed to initialize AI stream.");
       }
       setIsStreaming(false);
       abortControllerRef.current = null;
@@ -229,7 +259,9 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
   };
 
   const handleRetryLastQuery = () => {
-    const lastUserMsg = [...messages].reverse().find((m) => m.sender === 'student');
+    const lastUserMsg = [...messages]
+      .reverse()
+      .find((m) => m.sender === "student");
     if (lastUserMsg) {
       handleSendMessage(lastUserMsg.text);
     }
@@ -245,17 +277,19 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
           </div>
           <div className="min-w-0">
             <div className="flex items-center space-x-1.5">
-              <span className="text-sm font-bold text-slate-900 dark:text-white truncate">AI Doubt Assistant</span>
+              <span className="text-sm font-bold text-slate-900 dark:text-white truncate">
+                AI Doubt Assistant
+              </span>
               <span className="text-[10px] bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-300 font-semibold px-1.5 py-0.5 rounded border border-indigo-200 dark:border-indigo-500/30 flex-shrink-0">
-                Gemini 2.5
+                Gemini 3.8
               </span>
             </div>
             <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
               {activeResource
                 ? `Context: ${activeResource.title}`
                 : activeTopic
-                ? `Context: ${activeTopic.title}`
-                : 'General Backend Context'}
+                  ? `Context: ${activeTopic.title}`
+                  : "General Backend Context"}
             </p>
           </div>
         </div>
@@ -288,15 +322,16 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
           <Building className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400 flex-shrink-0" />
           <span className="text-slate-400">Grounding:</span>
           <span className="font-semibold text-slate-800 dark:text-slate-200 truncate">
-            {activeTopic ? activeTopic.title : 'Node.js Specifications'}
+            {activeTopic ? activeTopic.title : "Node.js Specifications"}
           </span>
         </div>
 
-        {activeTopic?.prerequisiteIds && activeTopic.prerequisiteIds.length > 0 && (
-          <span className="text-[10px] bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-800 font-mono flex-shrink-0">
-            {activeTopic.prerequisiteIds.length} Prereqs
-          </span>
-        )}
+        {activeTopic?.prerequisiteIds &&
+          activeTopic.prerequisiteIds.length > 0 && (
+            <span className="text-[10px] bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-800 font-mono flex-shrink-0">
+              {activeTopic.prerequisiteIds.length} Prereqs
+            </span>
+          )}
       </div>
 
       {/* Error Alert Bar */}
@@ -341,23 +376,27 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
         {messages.map((msg) => (
           <div
             key={msg.id}
-            className={`flex items-start space-x-2.5 ${msg.sender === 'student' ? 'flex-row-reverse space-x-reverse' : ''}`}
+            className={`flex items-start space-x-2.5 ${msg.sender === "student" ? "flex-row-reverse space-x-reverse" : ""}`}
           >
             <div
               className={`w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                msg.sender === 'student'
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-slate-100 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 border border-slate-200 dark:border-slate-700'
+                msg.sender === "student"
+                  ? "bg-indigo-600 text-white"
+                  : "bg-slate-100 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 border border-slate-200 dark:border-slate-700"
               }`}
             >
-              {msg.sender === 'student' ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
+              {msg.sender === "student" ? (
+                <User className="w-4 h-4" />
+              ) : (
+                <Bot className="w-4 h-4" />
+              )}
             </div>
 
             <div
               className={`max-w-[85%] rounded-2xl p-3.5 text-xs leading-relaxed space-y-2.5 break-words ${
-                msg.sender === 'student'
-                  ? 'bg-indigo-600 text-white rounded-tr-none'
-                  : 'bg-slate-50 dark:bg-slate-800/90 text-slate-900 dark:text-slate-200 border border-slate-200/90 dark:border-slate-700 rounded-tl-none'
+                msg.sender === "student"
+                  ? "bg-indigo-600 text-white rounded-tr-none"
+                  : "bg-slate-50 dark:bg-slate-800/90 text-slate-900 dark:text-slate-200 border border-slate-200/90 dark:border-slate-700 rounded-tl-none"
               }`}
             >
               <div className="whitespace-pre-wrap font-sans">
@@ -368,7 +407,9 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
                     <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse" />
                     <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse delay-150" />
                     <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse delay-300" />
-                    <span className="ml-1 text-[11px]">Formulating response from specifications...</span>
+                    <span className="ml-1 text-[11px]">
+                      Formulating response from specifications...
+                    </span>
                   </span>
                 ) : null}
               </div>
@@ -401,7 +442,7 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
               <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1">
                 <span>{msg.timestamp}</span>
 
-                {msg.sender === 'assistant' && msg.text && (
+                {msg.sender === "assistant" && msg.text && (
                   <button
                     onClick={() => handleCopyCodeOrText(msg.text, msg.id)}
                     className="flex items-center space-x-1 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white p-1"
@@ -410,7 +451,9 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
                     {copiedId === msg.id ? (
                       <>
                         <Check className="w-3 h-3 text-emerald-500" />
-                        <span className="text-emerald-500 font-medium">Copied</span>
+                        <span className="text-emerald-500 font-medium">
+                          Copied
+                        </span>
                       </>
                     ) : (
                       <>
@@ -453,7 +496,11 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
             value={inputQuestion}
             onChange={(e) => setInputQuestion(e.target.value)}
             disabled={isStreaming}
-            placeholder={isStreaming ? 'Formulating answer...' : 'Ask a doubt or request code...'}
+            placeholder={
+              isStreaming
+                ? "Formulating answer..."
+                : "Ask a doubt or request code..."
+            }
             className="flex-1 bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 disabled:opacity-50 min-h-[44px]"
           />
 
@@ -472,7 +519,8 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
         </form>
 
         <p className="text-[10px] text-slate-500 text-center">
-          Grounded in authoritative specs; distinguishes official docs from general knowledge.
+          Grounded in authoritative specs; distinguishes official docs from
+          general knowledge.
         </p>
       </div>
     </div>

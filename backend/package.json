@@ -3,18 +3,18 @@
   "type": "module",
   "private": true,
   "version": "0.0.0",
-  "description": "Node backend for proxying Google Cloud API requests",
-  "main": "server.js",
+  "description": "Node backend for the learning platform and MongoDB",
+  "main": "../frontend/server/server.js",
   "scripts": {
-    "start": "node --env-file=.env.local server.js",
-    "dev": "nodemon --env-file=.env.local server.js"
+    "start": "node --env-file=.env ../frontend/server/server.js",
+    "dev": "nodemon --env-file=.env ../frontend/server/server.js"
   },
   "dependencies": {
-    "dotenv": "^17.2.3",
     "express": "^5.2.1",
-    "google-auth-library": "^10.5.0",
+    "cors": "^2.8.5",
+    "helmet": "^8.1.0",
     "express-rate-limit": "^7.5.0",
-    "ws": "^8.18.0"
+    "mongoose": "^8.19.1"
   },
   "devDependencies": {
     "@types/node": "^25.2.0",

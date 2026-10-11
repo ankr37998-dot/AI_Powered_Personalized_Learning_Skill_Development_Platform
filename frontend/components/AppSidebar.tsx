@@ -1,5 +1,5 @@
-import React from 'react';
-import { UserProfile } from '../types';
+import React from "react";
+import { UserProfile } from "../types";
 import {
   Compass,
   FileText,
@@ -11,8 +11,8 @@ import {
   ChevronRight,
   Database,
   FileCode2,
-  X
-} from 'lucide-react';
+  X,
+} from "lucide-react";
 
 interface AppSidebarProps {
   activeTab: string;
@@ -37,41 +37,54 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
   onToggleCollapseDesktop,
   onOpenProfile,
   onOpenBackendStatus,
-  onOpenDocs
+  onOpenDocs,
 }) => {
-  // Pure Student Navigation Sections
-  const navSections = [
+  const studentNavSections = [
     {
-      title: 'LEARNING PATH',
+      title: "LEARNING PATH",
       items: [
-        { id: 'roadmap', label: 'Interactive Roadmap', icon: Compass, badge: 'Main' },
-        { id: 'syllabus', label: 'Syllabus Ingestion', icon: FileText }
-      ]
+        {
+          id: "roadmap",
+          label: "Interactive Roadmap",
+          icon: Compass,
+          badge: "Main",
+        },
+        { id: "syllabus", label: "Syllabus Ingestion", icon: FileText },
+      ],
     },
     {
-      title: 'CURATED KNOWLEDGE',
+      title: "CURATED KNOWLEDGE",
       items: [
-        { id: 'resources', label: 'Verified Resources', icon: ShieldCheck }
-      ]
+        { id: "resources", label: "Verified Resources", icon: ShieldCheck },
+      ],
     },
     {
-      title: 'SKILL ASSESSMENT',
+      title: "SKILL ASSESSMENT",
       items: [
-        { id: 'assessment', label: 'Diagnostics & Practice', icon: Award }
-      ]
+        { id: "assessment", label: "Diagnostics & Practice", icon: Award },
+      ],
     },
     {
-      title: 'PROGRESSION',
-      items: [
-        { id: 'progress', label: 'Mastery & History', icon: TrendingUp }
-      ]
-    }
+      title: "PROGRESSION",
+      items: [{ id: "progress", label: "Mastery & History", icon: TrendingUp }],
+    },
   ];
-
-  const handleNavClick = (tabId: string) => {
-    onTabChange(tabId);
-    onCloseMobile();
-  };
+  const navSections =
+    userProfile.role === "admin"
+      ? [
+          {
+            title: "ADMINISTRATION",
+            items: [
+              {
+                id: "admin",
+                label: "Admin Dashboard",
+                icon: ShieldCheck,
+                badge: "Admin",
+              },
+            ],
+          },
+        ]
+      : studentNavSections;
 
   return (
     <>
@@ -88,19 +101,23 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
       <aside
         className={`fixed top-0 bottom-0 left-0 z-50 flex flex-col bg-white dark:bg-slate-925 border-r border-slate-200/90 dark:border-slate-800/80 transition-all duration-200 ease-out ${
           isOpenMobile
-            ? 'translate-x-0 w-[280px] shadow-2xl'
-            : '-translate-x-full lg:translate-x-0'
-        } ${isCollapsedDesktop ? 'lg:w-[72px]' : 'lg:w-[260px]'}`}
-        aria-label="Student Navigation"
+            ? "translate-x-0 w-[280px] shadow-2xl"
+            : "-translate-x-full lg:translate-x-0"
+        } ${isCollapsedDesktop ? "lg:w-[72px]" : "lg:w-[260px]"}`}
+        aria-label={
+          userProfile.role === "admin"
+            ? "Administrator Navigation"
+            : "Student Navigation"
+        }
       >
         {/* Brand Header */}
         <div className="h-14 flex items-center justify-between px-3.5 border-b border-slate-100 dark:border-slate-800/80 flex-shrink-0">
           <div
-            onClick={() => handleNavClick('roadmap')}
+            onClick={() => handleNavClick("roadmap")}
             className="flex items-center space-x-2.5 cursor-pointer group min-w-0"
             role="button"
             tabIndex={0}
-            onKeyDown={(e) => e.key === 'Enter' && handleNavClick('roadmap')}
+            onKeyDown={(e) => e.key === "Enter" && handleNavClick("roadmap")}
           >
             <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center shadow-sm shadow-indigo-600/30 flex-shrink-0">
               <Cpu className="w-4 h-4 text-white" />
@@ -113,7 +130,9 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
                   </span>
                 </div>
                 <p className="text-[10px] text-slate-400 dark:text-slate-500 truncate -mt-0.5">
-                  Student Learning Workspace
+                  {userProfile.role === "admin"
+                    ? "Platform Administration"
+                    : "Student Learning Workspace"}
                 </p>
               </div>
             )}
@@ -132,8 +151,10 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
           <button
             onClick={onToggleCollapseDesktop}
             className="hidden lg:flex p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/60 rounded-md transition"
-            title={isCollapsedDesktop ? 'Expand sidebar' : 'Collapse sidebar'}
-            aria-label={isCollapsedDesktop ? 'Expand sidebar' : 'Collapse sidebar'}
+            title={isCollapsedDesktop ? "Expand sidebar" : "Collapse sidebar"}
+            aria-label={
+              isCollapsedDesktop ? "Expand sidebar" : "Collapse sidebar"
+            }
           >
             {isCollapsedDesktop ? (
               <ChevronRight className="w-3.5 h-3.5" />
@@ -162,22 +183,26 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
                     onClick={() => handleNavClick(item.id)}
                     className={`w-full flex items-center rounded-lg text-xs font-medium transition-colors ${
                       isCollapsedDesktop && !isOpenMobile
-                        ? 'justify-center p-2.5'
-                        : 'space-x-2.5 px-2.5 py-2'
+                        ? "justify-center p-2.5"
+                        : "space-x-2.5 px-2.5 py-2"
                     } ${
                       isActive
-                        ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-semibold'
-                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/70 dark:hover:bg-slate-850/60'
+                        ? "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-semibold"
+                        : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/70 dark:hover:bg-slate-850/60"
                     }`}
                     title={isCollapsedDesktop ? item.label : undefined}
                   >
                     <Icon
                       className={`w-4 h-4 flex-shrink-0 ${
-                        isActive ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 dark:text-slate-400'
+                        isActive
+                          ? "text-indigo-600 dark:text-indigo-400"
+                          : "text-slate-400 dark:text-slate-400"
                       }`}
                     />
                     {(!isCollapsedDesktop || isOpenMobile) && (
-                      <span className="flex-1 text-left truncate">{item.label}</span>
+                      <span className="flex-1 text-left truncate">
+                        {item.label}
+                      </span>
                     )}
                     {(!isCollapsedDesktop || isOpenMobile) && item.badge && (
                       <span className="text-[9px] px-1.5 py-0.2 rounded font-semibold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
@@ -205,8 +230,8 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
               }}
               className={`w-full flex items-center rounded-lg text-xs text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-100/70 dark:hover:bg-slate-850/60 transition ${
                 isCollapsedDesktop && !isOpenMobile
-                  ? 'justify-center p-2.5'
-                  : 'space-x-2.5 px-2.5 py-1.5'
+                  ? "justify-center p-2.5"
+                  : "space-x-2.5 px-2.5 py-1.5"
               }`}
               title="MongoDB Atlas Status"
             >
@@ -223,13 +248,15 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
               }}
               className={`w-full flex items-center rounded-lg text-xs text-slate-500 dark:text-slate-400 hover:text-cyan-600 dark:hover:text-cyan-400 hover:bg-slate-100/70 dark:hover:bg-slate-850/60 transition ${
                 isCollapsedDesktop && !isOpenMobile
-                  ? 'justify-center p-2.5'
-                  : 'space-x-2.5 px-2.5 py-1.5'
+                  ? "justify-center p-2.5"
+                  : "space-x-2.5 px-2.5 py-1.5"
               }`}
               title="Architecture Docs"
             >
               <FileCode2 className="w-3.5 h-3.5 text-cyan-500 flex-shrink-0" />
-              {(!isCollapsedDesktop || isOpenMobile) && <span>Architecture Specs</span>}
+              {(!isCollapsedDesktop || isOpenMobile) && (
+                <span>Architecture Specs</span>
+              )}
             </button>
           </div>
         </div>
@@ -242,11 +269,13 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
               onCloseMobile();
             }}
             className={`flex items-center rounded-lg p-1.5 cursor-pointer hover:bg-slate-200/50 dark:hover:bg-slate-800 transition ${
-              isCollapsedDesktop && !isOpenMobile ? 'justify-center' : 'space-x-2'
+              isCollapsedDesktop && !isOpenMobile
+                ? "justify-center"
+                : "space-x-2"
             }`}
             role="button"
             tabIndex={0}
-            onKeyDown={(e) => e.key === 'Enter' && onOpenProfile()}
+            onKeyDown={(e) => e.key === "Enter" && onOpenProfile()}
           >
             <div className="w-7 h-7 rounded-md bg-indigo-600/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center flex-shrink-0 font-semibold text-xs">
               {userProfile.name.charAt(0).toUpperCase()}
@@ -257,7 +286,9 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
                   {userProfile.name}
                 </div>
                 <div className="text-[10px] text-slate-400 truncate capitalize">
-                  Student · {userProfile.currentSkillLevel}
+                  {userProfile.role === "admin"
+                    ? "Administrator"
+                    : `Student · ${userProfile.currentSkillLevel}`}
                 </div>
               </div>
             )}
